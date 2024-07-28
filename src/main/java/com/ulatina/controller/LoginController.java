@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 @ManagedBean(name = "loginController")
 @SessionScoped
-
 public class LoginController implements Serializable {
 
     private UsuarioTO usuarioTO = new UsuarioTO();

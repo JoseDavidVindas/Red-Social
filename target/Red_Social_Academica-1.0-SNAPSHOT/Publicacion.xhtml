@@ -3,7 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
     <h:head>
         <title>Publicaciones</title>
         <style>
@@ -136,6 +137,73 @@
             .ui-autocomplete {
                 z-index: 1000; /* Asegura que la lista desplegable esté encima de otros elementos */
             }
+
+            .notification-badge {
+                position: relative;
+                display: inline-block;
+            }
+
+            .notification-badge .badge {
+                position: absolute;
+                top: -10px;
+                right: -10px;
+                padding: 5px 10px;
+                border-radius: 50%;
+                background-color: red;
+                color: white;
+                font-size: 12px;
+            }
+            .chat-list {
+                max-height: 300px;
+                overflow-y: auto;
+                padding: 10px;
+                background-color: #fff;
+                border-radius: 5px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .chat-item {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .chat-item:hover {
+                background-color: #f0f0f0;
+            }
+
+            .chat-item:last-child {
+                border-bottom: none;
+            }
+
+            .chat-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+                background-color: #ccc;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                font-weight: bold;
+            }
+
+            .chat-name {
+                font-size: 14px;
+                color: #333;
+            }
+            
+            .chat-unread {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: red;
+                margin-left: auto;
+            }
         </style>
     </h:head>
 
@@ -155,7 +223,11 @@
                     <p:menuitem value="Foro" icon="pi pi-fw pi-users">
                     </p:menuitem>
 
-                    <p:menuitem value="Chat" icon="pi pi-fw pi-comment">
+                    <p:menuitem id="chatMenuitem" icon="pi pi-fw pi-comment" >
+                        <h:outputText value="Chats" />
+                        <h:panelGroup id="chatMenuItem" styleClass="notification-badge">
+                            <h:outputText value="#{chatController.notificacionChats}" styleClass="badge" rendered="#{chatController.notificacionChats > 0}" />
+                        </h:panelGroup>
                     </p:menuitem>
 
                     <p:menuitem value="Cerrar Sesion" icon="pi pi-sign-out" outcome="IniciarSesion.xhtml">
@@ -176,6 +248,37 @@
                     </p:menuitem>
 
                 </p:menubar>
+
+                <!-- OverlayPanel para mostrar los chats -->
+                <p:overlayPanel id="chatOverlay" for="chatMenuitem" widgetVar="chatOverlay" showEvent="click" hideEvent="click" my="left top" at="left bottom" style="z-index: 1000;">
+                    <div class="chat-list">
+                        <ui:repeat value="#{chatController.chats}" var="chat">
+                            <div class="chat-item" onclick="PF('chatOverlay').hide();">
+                                <div class="chat-avatar">
+                                    <h:outputText value="#{chat.usuario2.nombre.substring(0, 1)}" />
+                                </div>
+                                <div class="chat-name">
+                                    <p:commandLink value="#{chat.usuario2.nombre}" actionListener="#{chatController.IrChat(chat.usuario2.id)}" update=":mainForm">
+                                        
+                                    </p:commandLink>
+                                </div>
+                                <h:panelGroup rendered="#{chatController.chatsSinVer.contains(chat)}">
+                                    <div class="chat-unread"></div>
+                                </h:panelGroup>
+                            </div>
+                        </ui:repeat>
+                        <h:panelGroup rendered="#{empty chatController.chats}">
+                            <h:outputText value="No tienes chats" />
+                        </h:panelGroup>
+                    </div>
+                </p:overlayPanel>
+
+                <!-- Componente que será actualizado por p:poll -->
+                <h:panelGroup id="chatNotification">
+                    <h:outputText value="#{chatController.notificacionChats}" styleClass="badge" rendered="#{chatController.notificacionChats > 0}"/>
+                </h:panelGroup>
+
+                <p:poll interval="10" update="chatMenuItem chatOverlay" listener="#{chatController.Chats}" />
 
                 <!-- Botón redondo para abrir el diálogo -->
                 <p:commandButton icon="pi pi-plus" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px;" actionListener="#{publicacionController.nuevaPublicacion()}" oncomplete="PF('dlg').show();" update="createDialog"/>

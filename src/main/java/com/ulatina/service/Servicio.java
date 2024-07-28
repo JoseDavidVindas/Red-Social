@@ -33,7 +33,7 @@ public class Servicio {
     public void Desconectar(){
         try{
             if(conexion != null && !conexion.isClosed()){
-                conexion.isClosed();
+                conexion.close();
                 conexion =null;
             }
         }catch(SQLException e){

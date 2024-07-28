@@ -77,6 +77,20 @@
                 color: #333; /* Color del texto en el campo de búsqueda */
                 border: 1px solid #ccc; /* Borde del campo de búsqueda */
             }
+            
+            .rounded-button {
+                background-color: #a6acaf;
+                color: white;
+                border-radius: 50%;
+                border: none;
+                cursor: pointer;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
         </style>
     </h:head>
 
@@ -119,6 +133,8 @@
             </h:form>
         </div>
         <div class="profile-panel">
+            
+            <p:commandButton icon="pi pi-fw pi-comment" action="#{chatController.IniciarChat}" styleClass="rounded-button"/>
             <h:form id="profileForm">
 
                 <h:panelGroup class="profile-header">
@@ -140,7 +156,7 @@
 
                     <label>Biografía:</label>
                     <span>#{empty busquedaController.usuarioSeleccionado.biografia ? 'No hay biografía' : busquedaController.usuarioSeleccionado.biografia}</span>
-
+                    
                 </h:panelGrid>
             </h:form>
         </div>
