@@ -18,6 +18,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
@@ -27,8 +28,8 @@ import org.primefaces.model.file.UploadedFile;
  *
  * @author Jose
  */
-@ManagedBean(name="editarPerfilController")
-@SessionScoped
+@ManagedBean(name = "editarPerfilController")
+@ViewScoped
 public class EditarPerfilController implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -39,7 +40,7 @@ public class EditarPerfilController implements Serializable {
     private UploadedFile nuevoCV;
     private Part archivoFotoPerfil;
     private String nuevacontrasena = "";
-    
+
     @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
 
@@ -53,16 +54,20 @@ public class EditarPerfilController implements Serializable {
     public void guardarCambios() {
         FacesContext context = FacesContext.getCurrentInstance();
         try {
-            if (archivoFotoPerfil != null && archivoFotoPerfil.getSize() > 0) {
-                String fotoPerfilPath = guardarArchivo(archivoFotoPerfil);
-                usuario.setFotoPerfil(fotoPerfilPath);
+            if (fotoPerfil != null && !fotoPerfil.getFileName().isEmpty()) {
+                try {
+                    String filePath = guardarFotoPerfil(fotoPerfil);
+                    usuario.setFotoPerfil(filePath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    // Manejo del error
+                }
             }
 
             if (nuevacontrasena != null && !nuevacontrasena.isEmpty()) {
                 usuario.setContrasena(nuevacontrasena);
             }
 
-          
             ServicioUsuario servicioUsuario = new ServicioUsuario();
 
             if (servicioUsuario.actualizarUsuario(usuario)) {
@@ -70,16 +75,31 @@ public class EditarPerfilController implements Serializable {
             } else {
                 context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "No se pudieron guardar los cambios en el perfil."));
             }
-        } catch (IOException e) {
-            context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Ocurrió un error al subir el archivo."));
-            e.printStackTrace();
         } catch (Exception e) {
             context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Ocurrió un error inesperado."));
             e.printStackTrace();
         }
     }
 
-    private String guardarArchivo(Part archivo) throws IOException {
+    private String guardarFotoPerfil(UploadedFile foto) throws IOException {
+        String fileName = foto.getFileName();
+        String folderPath = FacesContext.getCurrentInstance().getExternalContext().getRealPath("/archivos/imagenes/");
+        File folder = new File(folderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        String filePath = folderPath + File.separator + fileName;
+        try (InputStream input = foto.getInputStream(); FileOutputStream output = new FileOutputStream(filePath)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = input.read(buffer)) != -1) {
+                output.write(buffer, 0, bytesRead);
+            }
+        }
+        return "http://localhost:8080/Red_Social_Academica/archivos/imagenes/" + fileName; // Ruta relativa para usar en <p:graphicImage>
+    }
+
+    /*private String guardarArchivo(Part archivo) throws IOException {
         String fileName = Paths.get(archivo.getSubmittedFileName()).getFileName().toString();
   
         String filePath = "http://localhost:8080/Red_Social_Academica/archivos/imagenes/" + fileName;
@@ -109,12 +129,11 @@ public class EditarPerfilController implements Serializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-    
-    public void atras(){
+    }*/
+    public void atras() {
         this.redireccionar("/verperfil.xhtml");
     }
-    
+
     public void redireccionar(String ruta) {
         HttpServletRequest request;
         try {
@@ -126,7 +145,6 @@ public class EditarPerfilController implements Serializable {
     }
 
     // Getters y setters para los atributos
-
     private int getUsuarioId() {
         // Implementa la lógica para obtener el id del usuario actual
         return 1; // Ejemplo de retorno; reemplaza con la lógica real
@@ -136,7 +154,7 @@ public class EditarPerfilController implements Serializable {
         // Implementa la lógica para guardar el archivo y devolver la URL
         return ""; // Retorna la URL del archivo guardado
     }
-    
+
     public UsuarioTO getUsuario() {
         return usuario;
     }
@@ -173,4 +191,3 @@ public class EditarPerfilController implements Serializable {
         this.fotoPerfil = fotoPerfil;
     }
 }
-

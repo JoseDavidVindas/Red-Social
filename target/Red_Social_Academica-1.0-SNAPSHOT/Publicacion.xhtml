@@ -15,6 +15,7 @@
                 margin: 0;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 color: #ffffff;
+                min-height: 100vh; /* Añade esta línea */
             }
             .rounded-button {
                 background-color: #a6acaf;
@@ -57,10 +58,17 @@
                 margin-bottom: 10px;
             }
 
+            .profile-pic-container {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+
             .profile-pic {
-                width: 40px;
-                height: 40px;
+                width: 40px; /* Tamaño igual al de la fuente del nombre */
+                height: 40px; /* Tamaño igual al de la fuente del nombre */
                 border-radius: 50%;
+                object-fit: cover; /* Asegura que la imagen cubra el área circular */
                 margin-right: 10px;
             }
 
@@ -314,12 +322,14 @@
                         <p:commandButton value="Publicar" actionListener="#{publicacionController.crearPublicacion}" oncomplete="PF('dlg').hide();" update=":mainForm:messages :mainForm:publicaciones"/>
                     </h:panelGrid>
                 </p:dialog>
-
+                <!-- Mostrar publicaciones -->
                 <h:panelGrid columns="1" id="publicaciones" styleClass="feed-container">
                     <ui:repeat value="#{publicacionController.publicaciones}" var="publicacion">
                         <h:panelGroup layout="block" styleClass="post">
                             <h:panelGroup layout="block" styleClass="post-header">
-
+                                <h:panelGroup layout="inline" styleClass="profile-pic-container">
+                                    <p:graphicImage value="#{empty publicacion.usuario.fotoPerfil ? 'http://localhost:8080/Red_Social_Academica/archivos/imagenes/anonimo.jpg' : publicacion.usuario.fotoPerfil}" styleClass="profile-pic" />
+                                </h:panelGroup>
                                 <h:outputText value="#{publicacion.usuario.nombre}" styleClass="author-name"/>
                                 <h:outputText value="#{publicacion.fecha_publicacion}" styleClass="timestamp"/>
                             </h:panelGroup>

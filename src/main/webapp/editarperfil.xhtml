@@ -14,6 +14,7 @@
                 margin: 0;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 color: #ffffff;
+                min-height: 100vh; /* Añade esta línea */
             }
             .profile-panel {
                 background-color: #34495e;
@@ -32,9 +33,10 @@
                 width: 150px;
                 height: 150px;
                 background: url('https://img.icons8.com/clouds/100/000000/user.png') no-repeat center;
-                background-size: cover;
-                border-radius: 50%;
+                background-size: cover; /* Asegura que la imagen cubra todo el área del contenedor */
+                border-radius: 50%; /* Hace que el contenedor sea redondo */
                 margin: 0 auto 20px;
+                overflow: hidden;
             }
             .profile-info {
                 margin-bottom: 20px;
@@ -67,7 +69,7 @@
             <h:form id="editProfileForm" enctype="multipart/form-data">
                 <h:panelGroup class="profile-header">
                     <div class="profile-photo">
-                        <p:graphicImage value="#{editarPerfilController.usuario.fotoPerfil}" rendered="#{not empty editarPerfilController.usuario.fotoPerfil}" style="width: 100%; height: 100%;" />
+                        <p:graphicImage id="profilePhotoImage" value="#{editarPerfilController.usuario.fotoPerfil}" rendered="#{not empty editarPerfilController.usuario.fotoPerfil}" style="width: 100%; height: 100%;" />
                     </div>
                     <h2>Editar perfil de #{editarPerfilController.usuario.nombre}</h2>
                 </h:panelGroup>
@@ -93,12 +95,9 @@
                     <label for="biografia">Biografía:</label>
                     <p:inputTextarea id="biografia" value="#{editarPerfilController.usuario.biografia}" rows="5" />
 
-                    <h:form id="file" enctype="multipart/form-data">
-                        <label for="archivoFotoPerfil">Foto de Perfil:</label>
-                        <p:fileUpload value="#{editarPerfilController.fotoPerfil}" mode="simple" skinSimple="true" />
-
-
-                    </h:form>
+                    <label for="archivoFotoPerfil">Foto de Perfil:</label>
+                    <p:fileUpload id="archivoFotoPerfil" value="#{editarPerfilController.fotoPerfil}" mode="simple" skinSimple="true" 
+                                  accept=".jpg,.jpeg,.png,.gif" />
 
                 </h:panelGrid>
 
@@ -108,7 +107,7 @@
                 </div>
 
                 <p:confirmDialog widgetVar="confirmDialog" message="¿Deseas guardar los cambios?" header="Confirmar Cambios" severity="alert">
-                    <p:commandButton value="Sí" action="#{editarPerfilController.guardarCambios}" oncomplete="PF('confirmDialog').hide();" update="messages" />
+                    <p:commandButton value="Sí" action="#{editarPerfilController.guardarCambios}" oncomplete="PF('confirmDialog').hide();" update=":editProfileForm:messages :editProfileForm:profilePhotoImage :editProfileForm:archivoFotoPerfil" />
                     <p:commandButton value="No" onclick="PF('confirmDialog').hide();" type="button" />
                 </p:confirmDialog>
             </h:form>

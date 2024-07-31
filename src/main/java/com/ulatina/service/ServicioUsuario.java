@@ -41,8 +41,10 @@ public class ServicioUsuario extends Servicio implements CRUD<UsuarioTO> {
                 int rol = rs.getInt("rol_id");
                 String pass = rs.getString("contrasena");
                 String bio = rs.getString("biografia");
+                String foto = rs.getString("foto_perfil");
 
                 usuarioTORetorno = new UsuarioTO(id, mail, pass, nom, rol,bio);
+                usuarioTORetorno.setFotoPerfil(foto);
 
             }
         } catch (Exception e) {
@@ -109,8 +111,10 @@ public class ServicioUsuario extends Servicio implements CRUD<UsuarioTO> {
                 String nom = rs.getString("nombre");
                 int rol = rs.getInt("rol_id");
                 String pass = rs.getString("contrasena");
+                String foto = rs.getString("foto_perfil");
 
                 usuarioTORetorno = new UsuarioTO(id, mail, pass, nom, rol);
+                usuarioTORetorno.setFotoPerfil(foto);
 
             }
         } catch (Exception e) {
@@ -260,14 +264,15 @@ public class ServicioUsuario extends Servicio implements CRUD<UsuarioTO> {
 
         try {
                 Conectar();
-            String sql = "UPDATE usuario SET nombre = ?, correo = ?, contrasena = ?, biografia = ? WHERE id = ?";
+            String sql = "UPDATE usuario SET nombre = ?, correo = ?, contrasena = ?, biografia = ?, foto_perfil = ? WHERE id = ?";
             stmt = getConexion().prepareStatement(sql);
 
             stmt.setString(1, usuario.getNombre());
             stmt.setString(2, usuario.getCorreo());
             stmt.setString(3, usuario.getContrasena());
             stmt.setString(4, usuario.getBiografia());
-            stmt.setInt(5, usuario.getId());
+            stmt.setString(5, usuario.getFotoPerfil());
+            stmt.setInt(6, usuario.getId());
 
             int filasAfectadas = stmt.executeUpdate();
             if (filasAfectadas > 0) {

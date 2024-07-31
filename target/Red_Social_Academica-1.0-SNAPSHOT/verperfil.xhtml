@@ -13,6 +13,7 @@
                 margin: 0;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 color: #ffffff;
+                min-height: 100vh; /* Añade esta línea */
             }
             .profile-panel {
                 background-color: #34495e;
@@ -31,9 +32,10 @@
                 width: 150px;
                 height: 150px;
                 background: url('https://img.icons8.com/clouds/100/000000/user.png') no-repeat center;
-                background-size: cover;
-                border-radius: 50%;
+                background-size: cover; /* Asegura que la imagen cubra todo el área del contenedor */
+                border-radius: 50%; /* Hace que el contenedor sea redondo */
                 margin: 0 auto 20px;
+                overflow: hidden;
             }
             .profile-info {
                 margin-bottom: 20px;
@@ -107,10 +109,17 @@
                 margin-bottom: 10px;
             }
 
+            .profile-pic-container {
+                display: flex;
+                align-items: center;
+                margin-right: 10px;
+            }
+
             .profile-pic {
-                width: 40px;
-                height: 40px;
+                width: 40px; /* Tamaño igual al de la fuente del nombre */
+                height: 40px; /* Tamaño igual al de la fuente del nombre */
                 border-radius: 50%;
+                object-fit: cover; /* Asegura que la imagen cubra el área circular */
                 margin-right: 10px;
             }
 
@@ -382,7 +391,9 @@
                     <ui:repeat value="#{verPerfilController.publicaciones}" var="publicacion">
                         <h:panelGroup layout="block" styleClass="post">
                             <h:panelGroup layout="block" styleClass="post-header">
-
+                                <h:panelGroup layout="inline" styleClass="profile-pic-container">
+                                    <p:graphicImage value="#{empty publicacion.usuario.fotoPerfil ? 'http://localhost:8080/Red_Social_Academica/archivos/imagenes/anonimo.jpg' : publicacion.usuario.fotoPerfil}" styleClass="profile-pic" />
+                                </h:panelGroup>
                                 <h:outputText value="#{publicacion.usuario.nombre}" styleClass="author-name"/>
                                 <h:outputText value="#{publicacion.fecha_publicacion}" styleClass="timestamp"/>
                             </h:panelGroup>
@@ -411,6 +422,10 @@
                                 <p:commandButton icon="pi pi-star"
                                                  action="#{publicacionController.agregarFavoritos(publicacion)}"
                                                  update=":publicacionesUsuario:messages"
+                                                 />
+                                <p:commandButton icon="pi pi-download"
+                                                 action="#{publicacionController.descargarDocumentos(publicacion)}"
+                                                 ajax="false"
                                                  />
                                 <p:commandButton value="Eliminar" actionListener="#{verPerfilController.eliminarPublicacion(publicacion)}" update=":publicacionesUsuario:publicaciones, :publicacionesUsuario:messages" icon="pi pi-trash"/>
                             </h:panelGroup>
