@@ -14,6 +14,8 @@ import com.ulatina.service.ServicioCategoria;
 import com.ulatina.service.ServicioFavorito;
 import com.ulatina.service.ServicioPublicacion;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,14 +24,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.ResponsiveOption;
 import org.primefaces.model.file.UploadedFile;
@@ -243,12 +249,6 @@ public class PublicacionController implements Serializable {
         try {
             int idUsuario = obtenerIdUsuarioActual();
             servicioFavorito.agregarArchivoFavorito(idUsuario, publicacion.getId());
-            /*for (Documento doc : publicacion.getDocumentos()) {
-                servicioFavorito.agregarArchivoFavorito(idUsuario, doc.getId());
-            }
-            for (Imagen img : publicacion.getImagenes()) {
-                servicioFavorito.agregarArchivoFavorito(idUsuario, img.getId());
-            }*/
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Publicación agregada favoritos"));
 
         } catch (Exception e) {
@@ -260,7 +260,7 @@ public class PublicacionController implements Serializable {
     public void RedireccionarFavorito() {
         this.redireccionar("/Favorito.xhtml");
     }
-    
+
     private int obtenerIdUsuarioActual() {
         // Aquí debes obtener el ID del usuario actual, por ejemplo, desde la sesión
         UsuarioTO usuarioActual = loginController.getUsuarioTO();
@@ -276,8 +276,6 @@ public class PublicacionController implements Serializable {
             return new ArrayList<>();
         }
     }
-    
-    
 
     private void cargarCategorias() {
         try {
@@ -295,6 +293,64 @@ public class PublicacionController implements Serializable {
         } catch (Exception e) {
 
         }
+    }
+
+    public void descargarDocumentos(Publicacion publicacion) {
+        List<Documento> documentos = publicacion.getDocumentos();
+        List<Imagen> imagenes = publicacion.getImagenes();
+
+        try {
+            // Configurar la respuesta HTTP
+            FacesContext facesContext = FacesContext.getCurrentInstance();
+            HttpServletResponse response = (HttpServletResponse) facesContext.getExternalContext().getResponse();
+            response.reset();
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment;filename=publicacion_" + publicacion.getId() + ".zip");
+
+            // Crear el archivo ZIP
+            ZipOutputStream zos = new ZipOutputStream(response.getOutputStream());
+
+            // Agregar documentos al ZIP
+            for (Documento doc : documentos) {
+                addToZipFile(doc.getUrl(), zos);
+            }
+
+            // Agregar imágenes al ZIP
+            for (Imagen img : imagenes) {
+                addToZipFile(img.getUrl(), zos);
+            }
+
+            zos.close();
+            facesContext.responseComplete();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addToZipFile(String fileUrl, ZipOutputStream zos) throws IOException {
+        // Obtener la ruta absoluta del archivo en el servidor
+        FacesContext facesContext = FacesContext.getCurrentInstance();
+        ExternalContext externalContext = facesContext.getExternalContext();
+        String relativeWebPath = fileUrl.replaceFirst("http://localhost:8080/Red_Social_Academica", "");
+        String absoluteDiskPath = externalContext.getRealPath(relativeWebPath);
+
+        // Leer el archivo desde la ruta absoluta
+        File file = new File(absoluteDiskPath);
+        if (!file.exists()) {
+            throw new FileNotFoundException("El archivo no se encontró: " + absoluteDiskPath);
+        }
+        FileInputStream fis = new FileInputStream(file);
+        ZipEntry zipEntry = new ZipEntry(file.getName());
+        zos.putNextEntry(zipEntry);
+
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zos.write(bytes, 0, length); // Asegúrate de usar los tres parámetros
+        }
+
+        zos.closeEntry();
+        fis.close();
     }
 
     public void descargarDocumento(String url) {
