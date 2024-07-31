@@ -10,6 +10,7 @@ import com.ulatina.model.Imagen;
 import com.ulatina.model.Publicacion;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -142,5 +143,71 @@ public class ServicioArchivo extends Servicio{
         }
         return imagenes;
     }
+    
+    public Boolean eliminarDocumento(Publicacion t) throws ClassNotFoundException {
+        PreparedStatement stmt = null;
+        boolean exito = false;
+
+        try {
+            Conectar();
+            String sql = "DELETE FROM documento WHERE id_publicacion = ?";
+            stmt = getConexion().prepareStatement(sql);
+            stmt.setInt(1, t.getId());
+
+            int filasAfectadas = stmt.executeUpdate();
+            exito = filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+        return exito;
+    }
+    public Boolean eliminarImagen(Publicacion t) throws ClassNotFoundException {
+        PreparedStatement stmt = null;
+        boolean exito = false;
+
+        try {
+            Conectar();
+            String sql = "DELETE FROM imagen WHERE id_publicacion = ?";
+            stmt = getConexion().prepareStatement(sql);
+            stmt.setInt(1, t.getId());
+
+            int filasAfectadas = stmt.executeUpdate();
+            exito = filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+        return exito;
+    }
+    
+    public Boolean eliminarFavorito(Publicacion t) throws ClassNotFoundException {
+        PreparedStatement stmt = null;
+        boolean exito = false;
+
+        try {
+            Conectar();
+            String sql = "DELETE FROM favorito WHERE id_publicacion = ?";
+            stmt = getConexion().prepareStatement(sql);
+            stmt.setInt(1, t.getId());
+
+            int filasAfectadas = stmt.executeUpdate();
+            exito = filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+        return exito;
+    }
+    
     
 }

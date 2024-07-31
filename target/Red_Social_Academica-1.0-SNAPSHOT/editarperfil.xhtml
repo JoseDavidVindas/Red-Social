@@ -2,10 +2,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
     <h:head>
         <title>Editar Perfil</title>
         <style>
+
             body {
                 background-color: #2c3e50;
                 background: linear-gradient(white, #2c3e50);
@@ -57,8 +59,9 @@
                 width: 45%;
             }
         </style>
+
     </h:head>
-    
+
     <h:body>
         <div class="profile-panel">
             <h:form id="editProfileForm" enctype="multipart/form-data">
@@ -66,36 +69,46 @@
                     <div class="profile-photo">
                         <p:graphicImage value="#{editarPerfilController.usuario.fotoPerfil}" rendered="#{not empty editarPerfilController.usuario.fotoPerfil}" style="width: 100%; height: 100%;" />
                     </div>
-                    <h2>Editar Perfil de #{editarPerfilController.usuario.nombre}</h2>
+                    <h2>Editar perfil de #{editarPerfilController.usuario.nombre}</h2>
                 </h:panelGroup>
-                
+
+                <p:messages id="messages" />
+
                 <h:panelGrid columns="2" class="profile-info">
                     <label for="nombre">Nombre:</label>
                     <p:inputText id="nombre" value="#{editarPerfilController.usuario.nombre}" />
-                    
+
                     <label for="correo">Correo Electrónico:</label>
                     <p:inputText id="correo" value="#{editarPerfilController.usuario.correo}" />
-                    
-                    <label for="clave">Contraseña:</label>
-                    <p:password id="clave" value="#{editarPerfilController.usuario.clave}" />
-                    
+
+                    <label for="claveActual">Contraseña Actual:</label>
+                    <p:inputText id="claveActual" value="#{editarPerfilController.usuario.contrasena}" disabled="true" />
+
+                    <label for="claveNueva">Nueva Contraseña:</label>
+                    <p:password id="claveNueva" value="#{editarPerfilController.nuevacontrasena}" label="Nueva Contraseña" feedback="true" required="false" 
+                                requiredMessage="La nueva contraseña es obligatoria." weakLabel="Débil" goodLabel="Buena" strongLabel="Fuerte">
+                        <f:validateLength minimum="8" />
+                    </p:password>
+
                     <label for="biografia">Biografía:</label>
                     <p:inputTextarea id="biografia" value="#{editarPerfilController.usuario.biografia}" rows="5" />
-                    
-                    <label for="fotoPerfil">Foto de Perfil:</label>
-                    <p:fileUpload id="fotoPerfil" value="#{editarPerfilController.fotoPerfil}" mode="simple" />
-                    
-                    <label for="cv">CV:</label>
-                    <p:fileUpload id="cv" value="#{editarPerfilController.cv}" mode="simple" />
+
+                    <h:form id="file" enctype="multipart/form-data">
+                        <label for="archivoFotoPerfil">Foto de Perfil:</label>
+                        <p:fileUpload value="#{editarPerfilController.fotoPerfil}" mode="simple" skinSimple="true" />
+
+
+                    </h:form>
+
                 </h:panelGrid>
-                
+
                 <div class="profile-buttons">
-                    <p:commandButton value="Guardar Cambios" action="#{editarPerfilController.guardarCambios}" oncomplete="PF('confirmDialog').show();" update="messages" />
-                    <p:commandButton value="Atrás" action="#{verPerfilController.atras()}" />
+                    <p:commandButton value="Guardar Cambios" oncomplete="PF('confirmDialog').show();" update="messages" />
+                    <p:commandButton value="Atrás" action="#{editarPerfilController.atras}" />
                 </div>
-                
+
                 <p:confirmDialog widgetVar="confirmDialog" message="¿Deseas guardar los cambios?" header="Confirmar Cambios" severity="alert">
-                    <p:commandButton value="Sí" action="#{editarPerfilController.confirmarCambios}" oncomplete="PF('confirmDialog').hide();" />
+                    <p:commandButton value="Sí" action="#{editarPerfilController.guardarCambios}" oncomplete="PF('confirmDialog').hide();" update="messages" />
                     <p:commandButton value="No" onclick="PF('confirmDialog').hide();" type="button" />
                 </p:confirmDialog>
             </h:form>

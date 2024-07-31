@@ -22,6 +22,7 @@ public class Publicacion implements Serializable {
     private int numero_favoritos; 
     private List<Documento> documentos;
     private List<Imagen> imagenes;
+    private String categoria;
     
 
     // Constructor vacío
@@ -106,6 +107,14 @@ public class Publicacion implements Serializable {
 
     public void setImagenes(List<Imagen> imagenes) {
         this.imagenes = imagenes;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
     

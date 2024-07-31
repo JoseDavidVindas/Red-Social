@@ -1,0 +1,295 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    <h:head>
+        <title>Favoritos</title>
+        <style>
+            body {
+                background-color: #2c3e50;
+                background: linear-gradient(white, #2c3e50);
+                margin: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                color: #ffffff;
+            }
+            .rounded-button {
+                background-color: #a6acaf;
+                color: white;
+                border-radius: 50%;
+                border: none;
+                cursor: pointer;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .feed-container {
+                max-width: 600px;
+                margin: auto;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .post {
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                padding: 15px;
+                background-color: #fff;
+                max-width: 600px;
+                min-width: 300px;
+                width: 100%;
+                box-sizing: border-box;
+                text-align: left;
+            }
+            .post-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .profile-pic {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+            }
+            .author-name {
+                font-weight: bold;
+                margin-right: auto;
+                color: #333;
+                font-size: 22px;
+            }
+            .timestamp {
+                color: #777;
+                font-size: 0.8em;
+            }
+            .post-content {
+                margin-bottom: 10px;
+            }
+            .post-text {
+                margin-bottom: 10px;
+                word-wrap: break-word; /* Ajustar el texto largo */
+                overflow-wrap: break-word; /* Para navegadores modernos */
+                max-width: 100%; /* Asegurar que no se salga del contenedor */
+                color: #333;
+            }
+            .post-category {
+                font-weight: bold; /* Asegurar que el texto sea negrita */
+                margin-bottom: 5px; /* Espaciado entre categoría y descripción */
+                display: block; /* Asegurar que esté en una línea separada */
+                color: #006633;
+            }
+            
+            .post-document {
+                margin-bottom: 10px;
+                position: relative;
+            }
+            .document-link {
+                display: block;
+                padding: 10px;
+                background-color: #f0f0f0;
+                border-radius: 5px;
+                text-decoration: none;
+                color: #333;
+                text-align: center;
+            }
+            .post-actions {
+                display: flex;
+                justify-content: space-around;
+            }
+            .galleria {
+                width: 100%;
+                height: auto;
+            }
+            .custom-menubar {
+                background-color: #34495e !important; /* Cambia esto al color que desees */
+                border: none !important;
+            }
+            .custom-menubar .ui-menuitem .ui-menuitem-text {
+                color: #ffffff !important; /* Texto blanco */
+            }
+            .custom-menubar .ui-menuitem-icon {
+                color: #ffffff !important; /* Color blanco para los iconos */
+            }
+            .menu-search {
+                width: 200px; /* Ajusta el ancho del campo de búsqueda */
+            }
+            .menu-search .ui-inputtext {
+                background-color: #fff; /* Color de fondo del campo de búsqueda */
+                color: #333; /* Color del texto en el campo de búsqueda */
+                border: 1px solid #ccc; /* Borde del campo de búsqueda */
+            }
+            .ui-autocomplete {
+                z-index: 1000; /* Asegura que la lista desplegable esté encima de otros elementos */
+            }
+            .notification-badge {
+                position: relative;
+                display: inline-block;
+            }
+
+            .notification-badge .badge {
+                position: absolute;
+                top: -10px;
+                right: -10px;
+                padding: 5px 10px;
+                border-radius: 50%;
+                background-color: red;
+                color: white;
+                font-size: 12px;
+            }
+            .chat-list {
+                max-height: 300px;
+                overflow-y: auto;
+                padding: 10px;
+                background-color: #fff;
+                border-radius: 5px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .chat-item {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .chat-item:hover {
+                background-color: #f0f0f0;
+            }
+
+            .chat-item:last-child {
+                border-bottom: none;
+            }
+
+            .chat-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+                background-color: #ccc;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                font-weight: bold;
+            }
+
+            .chat-name {
+                font-size: 14px;
+                color: #333;
+            }
+
+            .chat-unread {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: red;
+                margin-left: auto;
+            }
+            
+        </style>
+    </h:head>
+
+    <h:body>
+        <div class="card">
+            <h:form id="mainForm">
+                <p:growl id="messages"/>
+
+                <p:menubar styleClass="custom-menubar">
+                    <p:menuitem icon="pi pi-home" outcome="Publicacion.xhtml"/>
+                    <p:menuitem value="Mi Perfil" icon="pi pi-fw pi-user" outcome="verperfil.xhtml"/>
+                    <p:menuitem value="Foro" icon="pi pi-fw pi-users"/>
+                    <p:menuitem id="chatMenuitem" icon="pi pi-fw pi-comment" >
+                        <h:outputText value="Chats" />
+                        <h:panelGroup id="chatMenuItem" styleClass="notification-badge">
+                            <h:outputText value="#{chatController.notificacionChats}" styleClass="badge" rendered="#{chatController.notificacionChats > 0}" />
+                        </h:panelGroup>
+                    </p:menuitem>
+                    <p:menuitem value="Cerrar Sesion" icon="pi pi-sign-out" outcome="IniciarSesion.xhtml"/>
+                    <p:menuitem>
+                        <p:autoComplete id="buscador" 
+                                        value="#{busquedaController.usuarioSeleccionado}" 
+                                        completeMethod="#{busquedaController.obtenerResultados}" 
+                                        var="usuario" 
+                                        itemLabel="#{usuario.nombre}" 
+                                        itemValue="#{usuario}" 
+                                        forceSelection="true"
+                                        converter="usuarioConverter"
+                                        placeholder="Buscar...">
+                            <p:ajax event="itemSelect" listener="#{busquedaController.redirigirUsuario}" update=":mainForm"/>
+                        </p:autoComplete>
+                    </p:menuitem>
+                </p:menubar>
+                
+                <!-- OverlayPanel para mostrar los chats -->
+                <p:overlayPanel id="chatOverlay" for="chatMenuitem" widgetVar="chatOverlay" showEvent="click" hideEvent="click" my="left top" at="left bottom" style="z-index: 1000;">
+                    <div class="chat-list">
+                        <ui:repeat value="#{chatController.chats}" var="chat">
+                            <div class="chat-item" onclick="PF('chatOverlay').hide();">
+                                <div class="chat-avatar">
+                                    <h:outputText value="#{chat.usuario2.nombre.substring(0, 1)}" />
+                                </div>
+                                <div class="chat-name">
+                                    <p:commandLink value="#{chat.usuario2.nombre}" actionListener="#{chatController.IrChat(chat.usuario2.id)}" update=":mainForm">
+
+                                    </p:commandLink>
+                                </div>
+                                <h:panelGroup rendered="#{chatController.chatsSinVer.contains(chat)}">
+                                    <div class="chat-unread"></div>
+                                </h:panelGroup>
+                            </div>
+                        </ui:repeat>
+                        <h:panelGroup rendered="#{empty chatController.chats}">
+                            <h:outputText value="No tienes chats" />
+                        </h:panelGroup>
+                    </div>
+                </p:overlayPanel>
+
+                <!-- Componente que será actualizado por p:poll -->
+                <h:panelGroup id="chatNotification">
+                    <h:outputText value="#{chatController.notificacionChats}" styleClass="badge" rendered="#{chatController.notificacionChats > 0}"/>
+                </h:panelGroup>
+
+                <p:poll interval="10" update="chatMenuItem chatOverlay" listener="#{chatController.Chats}" />
+
+                <h:panelGrid columns="1" id="favoritosPanel" styleClass="feed-container">
+                    <ui:repeat value="#{publicacionController.cargarFavoritos()}" var="publicacion">
+                        <h:panelGroup layout="block" styleClass="post">
+                            <h:panelGroup layout="block" styleClass="post-header">
+                                <h:outputText value="#{publicacion.usuario.nombre}" styleClass="author-name"/>
+                                <h:outputText value="#{publicacion.fecha_publicacion}" styleClass="timestamp"/>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" styleClass="post-content">
+                                <h:outputText value="#{publicacion.categoria}" styleClass="post-category"/>
+                                <h:outputText value="#{publicacion.descripcion}" escape="false" styleClass="post-text"/>
+                                <div class="card">
+                                    <p:galleria value="#{publicacion.imagenes}" var="imagen" numVisible="5" responsiveOptions="#{publicacionController.responsiveOptions1}"
+                                                showThumbnails="false" showIndicators="true" changeItemOnIndicatorHover="true" style="max-width: 640px">
+                                        <p:graphicImage value="#{imagen.url}" alt="#{photo}" style="width: 100%; display: block;" />
+                                    </p:galleria>
+                                </div>    
+                            </h:panelGroup>
+                            <div class="post-document">
+                                <ui:repeat value="#{publicacion.documentos}" var="documento">
+                                    <div class="document-container">
+                                        <h:outputLink value="#{documento.url}" styleClass="document-link">
+                                            <h:outputText value="#{publicacionController.obtenerNombreDocumento(documento.url)}" />
+                                            <i class="#{publicacionController.obtenerIconoDocumento(documento.url)}"></i>
+                                        </h:outputLink>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+                        </h:panelGroup>
+                    </ui:repeat>
+                </h:panelGrid>
+            </h:form>
+        </div>
+    </h:body>
+</html>

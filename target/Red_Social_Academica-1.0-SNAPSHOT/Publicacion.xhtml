@@ -48,6 +48,7 @@
                 min-width: 300px;
                 width: 100%;
                 box-sizing: border-box;
+                text-align: left;
             }
 
             .post-header {
@@ -67,6 +68,7 @@
                 font-weight: bold;
                 margin-right: auto;
                 color: #333;
+                font-size: 22px;
             }
 
             .timestamp {
@@ -84,6 +86,13 @@
                 overflow-wrap: break-word; /* Para navegadores modernos */
                 max-width: 100%; /* Asegurar que no se salga del contenedor */
                 color: #333;
+            }
+
+            .post-category {
+                font-weight: bold; /* Asegurar que el texto sea negrita */
+                margin-bottom: 5px; /* Espaciado entre categoría y descripción */
+                display: block; /* Asegurar que esté en una línea separada */
+                color: #006633;
             }
 
             .post-document {
@@ -196,7 +205,7 @@
                 font-size: 14px;
                 color: #333;
             }
-            
+
             .chat-unread {
                 width: 10px;
                 height: 10px;
@@ -259,7 +268,7 @@
                                 </div>
                                 <div class="chat-name">
                                     <p:commandLink value="#{chat.usuario2.nombre}" actionListener="#{chatController.IrChat(chat.usuario2.id)}" update=":mainForm">
-                                        
+
                                     </p:commandLink>
                                 </div>
                                 <h:panelGroup rendered="#{chatController.chatsSinVer.contains(chat)}">
@@ -282,12 +291,18 @@
 
                 <!-- Botón redondo para abrir el diálogo -->
                 <p:commandButton icon="pi pi-plus" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px;" actionListener="#{publicacionController.nuevaPublicacion()}" oncomplete="PF('dlg').show();" update="createDialog"/>
+                <p:commandButton icon="pi pi-star" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px;" actionListener="#{publicacionController.RedireccionarFavorito}"/>
 
                 <!-- Diálogo para crear publicación -->
                 <p:dialog id="createDialog" header="Crear Publicación" widgetVar="dlg" modal="true" width="600" height="330">
                     <h:panelGrid columns="1" cellpadding="5" style="width: 100%;">
                         <h:outputLabel for="description" value="Descripción:" />
                         <p:inputTextarea id="description" value="#{publicacionController.descripcion}" rows="4" cols="40" style="width: 100%;"/>
+                        <h:outputLabel for="categoria" value="Categoría:" />
+                        <p:selectOneMenu id="categoria" value="#{publicacionController.categoriaSeleccionada}">
+                            <f:selectItem itemLabel="Seleccione una categoría" itemValue="" />
+                            <f:selectItems value="#{publicacionController.categorias}" var="categoria" itemLabel="#{categoria.categoria}" itemValue="#{categoria}" />
+                        </p:selectOneMenu>
                         <p:fileUpload id="upl" listener="#{publicacionController.handleFileUploadEvent}" mode="advanced" dragDropSupport="false"
                                       multiple="true" update=":mainForm:messages,files1,files2" accept=".jpg,.jpeg,.png,.gif,.pdf,.docx" style="width: 100%;" fileLimit="10"/>
                         <h:panelGrid columns="1" id="files1">
@@ -309,6 +324,7 @@
                                 <h:outputText value="#{publicacion.fecha_publicacion}" styleClass="timestamp"/>
                             </h:panelGroup>
                             <h:panelGroup layout="block" styleClass="post-content">
+                                <h:outputText value="#{publicacion.categoria}" styleClass="post-category"/>
                                 <h:outputText value="#{publicacion.descripcion}" escape="false" styleClass="post-text"/>
                                 <div class="card">
                                     <p:galleria value="#{publicacion.imagenes}" var="imagen" numVisible="5" responsiveOptions="#{publicacionController.responsiveOptions1}"
@@ -320,7 +336,7 @@
                             <div class="post-document">
                                 <ui:repeat value="#{publicacion.documentos}" var="documento">
                                     <div class="document-container">
-                                        <h:outputLink value="#{documento.url}" styleClass="document-link">
+                                        <h:outputLink value="#{documento.url}" target="_blank" styleClass="document-link">
                                             <h:outputText value="#{publicacionController.obtenerNombreDocumento(documento.url)}" />
                                             <i class="#{publicacionController.obtenerIconoDocumento(documento.url)}"></i>
                                         </h:outputLink>
@@ -329,7 +345,10 @@
                             </div>
 
                             <h:panelGroup layout="block" styleClass="post-actions">
-                                <p:commandButton value="Favoritos (#{publicacion.numero_favoritos})" actionListener="#{publicacionController.favoritos(publicacion)}" update=":mainForm:messages"/>
+                                <p:commandButton icon="pi pi-star"
+                                                 action="#{publicacionController.agregarFavoritos(publicacion)}"
+                                                 update=":mainForm:messages"
+                                                 />
                             </h:panelGroup>
                         </h:panelGroup>
                     </ui:repeat>

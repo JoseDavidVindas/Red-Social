@@ -5,10 +5,13 @@
 package com.ulatina.controller;
 
 import com.ulatina.model.Archivo;
+import com.ulatina.model.Categoria;
 import com.ulatina.model.Documento;
 import com.ulatina.model.Imagen;
 import com.ulatina.model.Publicacion;
 import com.ulatina.model.UsuarioTO;
+import com.ulatina.service.ServicioCategoria;
+import com.ulatina.service.ServicioFavorito;
 import com.ulatina.service.ServicioPublicacion;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,23 +27,27 @@ import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
+import javax.servlet.http.HttpServletRequest;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.ResponsiveOption;
 import org.primefaces.model.file.UploadedFile;
-import org.primefaces.model.file.UploadedFiles;
 
 /**
  *
  * @author josem
  */
-@ManagedBean(name="publicacionController")
-@SessionScoped
-public class PublicacionController implements Serializable{
-    
+@ManagedBean(name = "publicacionController")
+@ViewScoped
+public class PublicacionController implements Serializable {
+
+    private ServicioFavorito servicioFavorito;
     private Publicacion publicacion;
     private String descripcion;
     private ServicioPublicacion servPublicacion;
+    private ServicioCategoria servCategoria;
+    private String categoria;
     private List<Publicacion> publicaciones;
     private int currentPage = 0;
     private static final int PAGE_SIZE = 10;
@@ -56,12 +63,15 @@ public class PublicacionController implements Serializable{
     private List<ResponsiveOption> responsiveOptions1;
     private String photo;
     private UsuarioTO user;
+    private List<Categoria> categorias;
+    private String categoriaSeleccionada;
 
     @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
 
     public PublicacionController() {
         servPublicacion = new ServicioPublicacion();
+        servCategoria = new ServicioCategoria();
         publicaciones = new ArrayList<>();
         responsiveOptions1 = new ArrayList<>();
         responsiveOptions1.add(new ResponsiveOption("1024px", 5));
@@ -69,10 +79,13 @@ public class PublicacionController implements Serializable{
         responsiveOptions1.add(new ResponsiveOption("560px", 1));
         photo = "No se cargo la imagen";
         cargarPublicaciones(0);
+        cargarCategorias();
     }
+
     @PostConstruct
-    public void init(){
+    public void init() {
         user = loginController.getUsuarioTO();
+        this.servicioFavorito = new ServicioFavorito();
     }
 
     public void handleFileUploadEvent(FileUploadEvent event) throws IOException {
@@ -88,6 +101,7 @@ public class PublicacionController implements Serializable{
         files = new ArrayList<>();
         imagenes = new ArrayList<Imagen>();
         documentos = new ArrayList<Documento>();
+        categoriaSeleccionada = null;
     }
 
     protected void copyFile(String fileName, InputStream in, boolean esTemporal) {
@@ -147,6 +161,7 @@ public class PublicacionController implements Serializable{
             publicacion.setUsuario(loginController.getUsuarioTO());
             publicacion.setDocumentos(documentos);
             publicacion.setImagenes(imagenes);
+            publicacion.setCategoria(categoriaSeleccionada);
 
             if (!servPublicacion.insertar(publicacion)) {
                 descripcion = "";
@@ -224,9 +239,62 @@ public class PublicacionController implements Serializable{
         }
     }
 
-    public void favoritos(Publicacion publicacion) {
-        publicacion.setNumero_favoritos(publicacion.getNumero_favoritos() + 1);
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("You favorited a post."));
+    public void agregarFavoritos(Publicacion publicacion) {
+        try {
+            int idUsuario = obtenerIdUsuarioActual();
+            servicioFavorito.agregarArchivoFavorito(idUsuario, publicacion.getId());
+            /*for (Documento doc : publicacion.getDocumentos()) {
+                servicioFavorito.agregarArchivoFavorito(idUsuario, doc.getId());
+            }
+            for (Imagen img : publicacion.getImagenes()) {
+                servicioFavorito.agregarArchivoFavorito(idUsuario, img.getId());
+            }*/
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Publicación agregada favoritos"));
+
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "No se pudo agregar la publicación a favoritos"));
+            e.printStackTrace();
+        }
+    }
+
+    public void RedireccionarFavorito() {
+        this.redireccionar("/Favorito.xhtml");
+    }
+    
+    private int obtenerIdUsuarioActual() {
+        // Aquí debes obtener el ID del usuario actual, por ejemplo, desde la sesión
+        UsuarioTO usuarioActual = loginController.getUsuarioTO();
+        return usuarioActual != null ? usuarioActual.getId() : -1; // O manejar caso de usuario no logueado
+    }
+
+    public List<Publicacion> cargarFavoritos() {
+        try {
+            int idUsuario = obtenerIdUsuarioActual();
+            return servicioFavorito.obtenerFavoritosPorUsuario(idUsuario);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    
+    
+
+    private void cargarCategorias() {
+        try {
+            categorias = servCategoria.obtenerTodasCategorias(); // Carga todas las categorías
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void redireccionar(String ruta) {
+        HttpServletRequest request;
+        try {
+            request = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+            FacesContext.getCurrentInstance().getExternalContext().redirect(request.getContextPath() + ruta);
+        } catch (Exception e) {
+
+        }
     }
 
     public void descargarDocumento(String url) {
@@ -339,6 +407,30 @@ public class PublicacionController implements Serializable{
 
     public void setUser(UsuarioTO user) {
         this.user = user;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public List<Categoria> getCategorias() {
+        return categorias;
+    }
+
+    public void setCategorias(List<Categoria> categorias) {
+        this.categorias = categorias;
+    }
+
+    public String getCategoriaSeleccionada() {
+        return categoriaSeleccionada;
+    }
+
+    public void setCategoriaSeleccionada(String categoriaSeleccionada) {
+        this.categoriaSeleccionada = categoriaSeleccionada;
     }
 
 }

@@ -254,6 +254,34 @@ public class ServicioUsuario extends Servicio implements CRUD<UsuarioTO> {
         return rol;
     }
     
+    public boolean actualizarUsuario(UsuarioTO usuario) {
+        PreparedStatement stmt = null;
+        boolean exito = false;
+
+        try {
+                Conectar();
+            String sql = "UPDATE usuario SET nombre = ?, correo = ?, contrasena = ?, biografia = ? WHERE id = ?";
+            stmt = getConexion().prepareStatement(sql);
+
+            stmt.setString(1, usuario.getNombre());
+            stmt.setString(2, usuario.getCorreo());
+            stmt.setString(3, usuario.getContrasena());
+            stmt.setString(4, usuario.getBiografia());
+            stmt.setInt(5, usuario.getId());
+
+            int filasAfectadas = stmt.executeUpdate();
+            if (filasAfectadas > 0) {
+                exito = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+        return exito;
+    }
+    
     @Override
     public Boolean modificar(UsuarioTO t) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody

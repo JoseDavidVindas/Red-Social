@@ -79,6 +79,120 @@
                 border: 1px solid #ccc; /* Borde del campo de búsqueda */
             }
             
+            .feed-container {
+                max-width: 600px;
+                margin: auto;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .post {
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                padding: 15px;
+                background-color: #fff;
+                max-width: 600px;
+                min-width: 300px;
+                width: 100%;
+                box-sizing: border-box;
+                text-align: left;
+            }
+
+            .post-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+
+            .profile-pic {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+            }
+
+            .author-name {
+                font-weight: bold;
+                margin-right: auto;
+                color: #333;
+                font-size: 22px;
+            }
+
+            .timestamp {
+                color: #777;
+                font-size: 0.8em;
+            }
+
+            .post-content {
+                margin-bottom: 10px;
+            }
+
+            .post-text {
+                margin-bottom: 10px;
+                word-wrap: break-word; /* Ajustar el texto largo */
+                overflow-wrap: break-word; /* Para navegadores modernos */
+                max-width: 100%; /* Asegurar que no se salga del contenedor */
+                color: #333;
+            }
+            
+            .post-category {
+                font-weight: bold; /* Asegurar que el texto sea negrita */
+                margin-bottom: 5px; /* Espaciado entre categoría y descripción */
+                display: block; /* Asegurar que esté en una línea separada */
+                color: #006633;
+            }
+
+            .post-document {
+                margin-bottom: 10px;
+                position: relative;
+            }
+
+            .document-link {
+                display: block;
+                padding: 10px;
+                background-color: #f0f0f0;
+                border-radius: 5px;
+                text-decoration: none;
+                color: #333;
+                text-align: center;
+            }
+
+            .post-actions {
+                display: flex;
+                justify-content: space-around;
+            }
+
+            .galleria {
+                width: 100%;
+                height: auto;
+            }
+            
+            .custom-menubar {
+                background-color: #34495e !important; /* Cambia esto al color que desees */
+                border: none !important;
+            }
+
+            .custom-menubar .ui-menuitem .ui-menuitem-text {
+                color: #ffffff !important; /* Texto blanco */
+            }
+
+            /* Cambia el color de los iconos */
+            .custom-menubar .ui-menuitem-icon {
+                color: #ffffff !important; /* Color blanco para los iconos */
+            }
+
+            .menu-search {
+                width: 200px; /* Ajusta el ancho del campo de búsqueda */
+            }
+
+            .menu-search .ui-inputtext {
+                background-color: #fff; /* Color de fondo del campo de búsqueda */
+                color: #333; /* Color del texto en el campo de búsqueda */
+                border: 1px solid #ccc; /* Borde del campo de búsqueda */
+            }
             
             .ui-autocomplete {
                 z-index: 1000; /* Asegura que la lista desplegable esté encima de otros elementos */
@@ -257,6 +371,53 @@
                 <div class="profile-buttons">
                     <p:commandButton value="Editar Perfil" action="#{verPerfilController.editarPerfil}" />
                 </div>
+            </h:form>
+        </div>
+        <div class="card"> 
+             <h:form id="publicacionesUsuario">
+                
+                <p:growl id="messages"/>
+                
+                <h:panelGrid columns="1" id="publicaciones" styleClass="feed-container">
+                    <ui:repeat value="#{verPerfilController.publicaciones}" var="publicacion">
+                        <h:panelGroup layout="block" styleClass="post">
+                            <h:panelGroup layout="block" styleClass="post-header">
+
+                                <h:outputText value="#{publicacion.usuario.nombre}" styleClass="author-name"/>
+                                <h:outputText value="#{publicacion.fecha_publicacion}" styleClass="timestamp"/>
+                            </h:panelGroup>
+                            <h:panelGroup layout="block" styleClass="post-content">
+                                <h:outputText value="#{publicacion.categoria}" styleClass="post-category"/>
+                                <h:outputText value="#{publicacion.descripcion}" escape="false" styleClass="post-text"/>
+                                <div class="card">
+                                    <p:galleria value="#{publicacion.imagenes}" var="imagen" numVisible="5" responsiveOptions="#{publicacionController.responsiveOptions1}"
+                                                showThumbnails="false" showIndicators="true" changeItemOnIndicatorHover="true" style="max-width: 640px">
+                                        <p:graphicImage value="#{imagen.url}" alt="#{photo}" style="width: 100%; display: block;" />
+                                    </p:galleria>
+                                </div>    
+                            </h:panelGroup>
+                            <div class="post-document">
+                                <ui:repeat value="#{publicacion.documentos}" var="documento">
+                                    <div class="document-container">
+                                        <h:outputLink value="#{documento.url}" styleClass="document-link">
+                                            <h:outputText value="#{publicacionController.obtenerNombreDocumento(documento.url)}" />
+                                            <i class="#{publicacionController.obtenerIconoDocumento(documento.url)}"></i>
+                                        </h:outputLink>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+
+                            <h:panelGroup layout="block" styleClass="post-actions">
+                                <p:commandButton icon="pi pi-star"
+                                                 action="#{publicacionController.agregarFavoritos(publicacion)}"
+                                                 update=":publicacionesUsuario:messages"
+                                                 />
+                                <p:commandButton value="Eliminar" actionListener="#{verPerfilController.eliminarPublicacion(publicacion)}" update=":publicacionesUsuario:publicaciones, :publicacionesUsuario:messages" icon="pi pi-trash"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </ui:repeat>
+                </h:panelGrid>
+
             </h:form>
         </div>
     </h:body>

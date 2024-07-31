@@ -1,3 +1,4 @@
+com\ulatina\model\Favorito.class
 com\ulatina\model\Imagen.class
 com\ulatina\service\ServicioChat.class
 com\ulatina\service\ServicioPublicacion.class
@@ -6,6 +7,7 @@ com\ulatina\service\ServicioUsuario.class
 com\ulatina\model\Documento.class
 com\ulatina\controller\UsuarioConverter.class
 com\ulatina\controller\RegistroController.class
+com\ulatina\service\ServicioFavorito.class
 com\ulatina\model\Rol.class
 com\ulatina\service\CRUD.class
 com\ulatina\controller\ChatEndpoint.class

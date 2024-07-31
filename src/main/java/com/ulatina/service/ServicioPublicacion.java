@@ -31,11 +31,12 @@ public class ServicioPublicacion extends Servicio implements CRUD<Publicacion> {
         try {
             Conectar();
 
-            String sql = "INSERT INTO publicacion (descripcion,usuario_id,numero_favoritos) VALUES (?,?,?)";
+            String sql = "INSERT INTO publicacion (descripcion,usuario_id,numero_favoritos,categoria) VALUES (?,?,?,?)";
             stmt = getConexion().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, t.getDescripcion());
             stmt.setInt(2, t.getUsuario().getId());
             stmt.setInt(3, t.getNumero_favoritos());
+            stmt.setString(4, t.getCategoria());
 
             int filasInsertadas = stmt.executeUpdate();
 
@@ -102,7 +103,7 @@ public class ServicioPublicacion extends Servicio implements CRUD<Publicacion> {
         try {
             Conectar();
             // La consulta SQL se actualiza para usar un límite
-            String query = "SELECT id, descripcion, usuario_id, fecha_publicacion, fecha_actualizacion, numero_favoritos "
+            String query = "SELECT id, descripcion, usuario_id, fecha_publicacion, fecha_actualizacion, numero_favoritos, categoria "
                     + "FROM publicacion "
                     + "ORDER BY fecha_publicacion DESC "
                     + "LIMIT ?";
@@ -119,6 +120,7 @@ public class ServicioPublicacion extends Servicio implements CRUD<Publicacion> {
                 publicacion.setFecha_publicacion(rs.getTimestamp("fecha_publicacion"));
                 publicacion.setFecha_actualizacion(rs.getTimestamp("fecha_actualizacion"));
                 publicacion.setNumero_favoritos(rs.getInt("numero_favoritos"));
+                publicacion.setCategoria(rs.getString("categoria"));
                 publicacion.setDocumentos(servA.buscarDocumento(publicacion));
                 publicacion.setImagenes(servA.buscarImagen(publicacion));
                 publicaciones.add(publicacion);
@@ -131,6 +133,76 @@ public class ServicioPublicacion extends Servicio implements CRUD<Publicacion> {
             Desconectar();
         }
         return publicaciones;
+    }
+
+    public List<Publicacion> findAllPublicaciones(int id) throws ClassNotFoundException {
+        List<Publicacion> publicaciones = new ArrayList<>();
+        ResultSet rs = null;
+        PreparedStatement stmt = null;
+        ServicioUsuario servUsuario = new ServicioUsuario();
+        ServicioArchivo servA = new ServicioArchivo();
+
+        try {
+            Conectar();
+            // La consulta SQL se actualiza para usar un límite
+            String query = "SELECT id, descripcion, usuario_id, fecha_publicacion, fecha_actualizacion, numero_favoritos, categoria "
+                    + "FROM publicacion "
+                    + "WHERE usuario_id = ? "
+                    + "ORDER BY fecha_publicacion DESC";
+
+            stmt = getConexion().prepareStatement(query);
+            stmt.setInt(1, id);
+
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Publicacion publicacion = new Publicacion();
+                publicacion.setId(rs.getInt("id"));
+                publicacion.setDescripcion(rs.getString("descripcion"));
+                publicacion.setUsuario(servUsuario.usuarioPK(rs.getInt("usuario_id")));
+                publicacion.setFecha_publicacion(rs.getTimestamp("fecha_publicacion"));
+                publicacion.setFecha_actualizacion(rs.getTimestamp("fecha_actualizacion"));
+                publicacion.setNumero_favoritos(rs.getInt("numero_favoritos"));
+                publicacion.setCategoria(rs.getString("categoria"));
+                publicacion.setDocumentos(servA.buscarDocumento(publicacion));
+                publicacion.setImagenes(servA.buscarImagen(publicacion));
+                publicaciones.add(publicacion);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            CerrarResultSet(rs);
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+        return publicaciones;
+    }
+
+    public Boolean eliminarPublicacion(Publicacion t) throws ClassNotFoundException {
+        PreparedStatement stmt = null;
+        boolean exito = false;
+        ServicioArchivo servA = new ServicioArchivo();
+
+        try {
+            Conectar();
+            String sql = "DELETE FROM publicacion WHERE id = ?";
+            stmt = getConexion().prepareStatement(sql);
+            stmt.setInt(1, t.getId());
+
+            servA.eliminarDocumento(t);
+            servA.eliminarImagen(t);
+            servA.eliminarFavorito(t);
+            
+            int filasAfectadas = stmt.executeUpdate();
+            exito = filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+        return exito;
     }
 
 }

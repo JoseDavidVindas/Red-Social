@@ -4,8 +4,10 @@
  */
 package com.ulatina.controller;
 
+import com.ulatina.model.Publicacion;
 import com.ulatina.model.Rol;
 import com.ulatina.model.UsuarioTO;
+import com.ulatina.service.ServicioPublicacion;
 import com.ulatina.service.ServicioUsuario;
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
@@ -28,9 +32,7 @@ import org.primefaces.model.file.UploadedFile;
  *
  * @author Jose
  */
- 
-
-@ManagedBean(name="verPerfilController")
+@ManagedBean(name = "verPerfilController")
 @ViewScoped
 public class VerPerfilController implements Serializable {
 
@@ -42,22 +44,29 @@ public class VerPerfilController implements Serializable {
     @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
     private Rol rol;
-    
+    private List<Publicacion> publicaciones;
+    private ServicioPublicacion ServPubli;
+
     public VerPerfilController() {
         rol = new Rol();
         servUsuario = new ServicioUsuario();
-        
+        publicaciones = new ArrayList<>();
+        ServPubli = new ServicioPublicacion();
     }
 
-    
-    
     @PostConstruct
     public void init() {
-        usuario = loginController.getUsuarioTO(); 
-        rol = servUsuario.rolPK(usuario.getRol());
-        biografia = usuario.getBiografia();
-        fotoPerfil = usuario.getFotoPerfil();
-        cvUrl = usuario.getCvUrl();
+        try {
+
+            usuario = loginController.getUsuarioTO();
+            rol = servUsuario.rolPK(usuario.getRol());
+            biografia = usuario.getBiografia();
+            fotoPerfil = usuario.getFotoPerfil();
+            cvUrl = usuario.getCvUrl();
+            publicaciones = ServPubli.findAllPublicaciones(usuario.getId());
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public void verCV() {
@@ -100,7 +109,7 @@ public class VerPerfilController implements Serializable {
     public void actualizarFotoPerfil(UploadedFile archivo) {
         try {
             if (archivo != null) {
-                String url = saveFile(archivo); 
+                String url = saveFile(archivo);
                 if (servUsuario.actualizarFotoPerfil(usuario.getId(), url)) {
                     fotoPerfil = url;
                     FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Foto de perfil actualizada satisfactoriamente"));
@@ -113,14 +122,29 @@ public class VerPerfilController implements Serializable {
         }
     }
     
-    public void editarPerfil(){
+    public void eliminarPublicacion(Publicacion publicacion) {
+    try {
+        boolean exito = ServPubli.eliminarPublicacion(publicacion);
+        if (exito) {
+            publicaciones.remove(publicacion);
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Publicación eliminada correctamente"));
+        } else {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "No se pudo eliminar la publicación."));
+        }
+    } catch (Exception e) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Ocurrió un error al eliminar la publicación."));
+        e.printStackTrace();
+    }
+}
+
+    public void editarPerfil() {
         this.redireccionar("/editarperfil.xhtml");
     }
-    
-    public void atras(){
+
+    public void atras() {
         this.redireccionar("/Publicacion.xhtml");
     }
-    
+
     public void redireccionar(String ruta) {
         HttpServletRequest request;
         try {
@@ -178,9 +202,7 @@ public class VerPerfilController implements Serializable {
         UsuarioTO usuarioLogueado = (UsuarioTO) session.getAttribute("usuarioLogueado");
         return usuarioLogueado != null ? usuarioLogueado.getId() : -1; 
     }*/
-    
-
-   private String saveFile(UploadedFile archivo) {
+    private String saveFile(UploadedFile archivo) {
         String filePath = "/uploads/" + archivo.getFileName();
         try (InputStream input = archivo.getInputStream()) {
             Files.copy(input, new File(filePath).toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -207,8 +229,21 @@ public class VerPerfilController implements Serializable {
     public void setRol(Rol rol) {
         this.rol = rol;
     }
-   
-   
+
+    public List<Publicacion> getPublicaciones() {
+        return publicaciones;
+    }
+
+    public void setPublicaciones(List<Publicacion> publicaciones) {
+        this.publicaciones = publicaciones;
+    }
+
+    public ServicioPublicacion getServPubli() {
+        return ServPubli;
+    }
+
+    public void setServPubli(ServicioPublicacion ServPubli) {
+        this.ServPubli = ServPubli;
+    }
+
 }
-
-

@@ -17,6 +17,7 @@ import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author josem
  */
 @ManagedBean(name = "chatController")
-@SessionScoped
+@ViewScoped
 public class ChatController {
 
     private UsuarioTO usuario1;
@@ -74,6 +75,7 @@ public class ChatController {
             }
         }
 
+        
         this.redireccionar("/Chat.xhtml");
 
     }
@@ -106,6 +108,7 @@ public class ChatController {
             }
         }
 
+       
         this.redireccionar("/Chat.xhtml");
         
     }
@@ -134,6 +137,18 @@ public class ChatController {
 
                 if (usuario1.getId() != conversacion.getUsuario().getId()) {
                     if ("Visto".equals(conversacion.getEstado())) {
+                        Boolean flag = false;
+                        for (Chat chat1 : chatsSinVer) {
+                                if (chat1.getId() == chat.getId()) {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                        if (flag) {
+                                    chatsSinVer.remove(chat);
+                                    notificacionChats = notificacionChats - 1;
+                                    break;
+                                }
                         break;
                     } else if ("No visto".equals(conversacion.getEstado())) {
 
