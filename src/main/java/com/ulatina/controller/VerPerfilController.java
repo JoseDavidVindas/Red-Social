@@ -36,6 +36,7 @@ import org.primefaces.model.file.UploadedFile;
 @ViewScoped
 public class VerPerfilController implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private UsuarioTO usuario;
     private ServicioUsuario servUsuario;
     private String cvUrl;

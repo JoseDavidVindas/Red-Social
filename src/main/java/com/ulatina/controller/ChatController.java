@@ -10,6 +10,7 @@ import com.ulatina.model.Conversacion;
 import com.ulatina.model.UsuarioTO;
 import com.ulatina.service.ServicioChat;
 import com.ulatina.service.ServicioUsuario;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -26,9 +27,10 @@ import javax.servlet.http.HttpServletRequest;
  * @author josem
  */
 @ManagedBean(name = "chatController")
-@ViewScoped
-public class ChatController {
+@SessionScoped
+public class ChatController implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private UsuarioTO usuario1;
     private UsuarioTO usuario2;
     @ManagedProperty(value = "#{loginController}")
@@ -54,63 +56,68 @@ public class ChatController {
     public void IniciarChat() {
         usuario2 = busquedaController.getUsuarioSeleccionado();
         usuario1 = loginController.getUsuarioTO();
-        chat = servC.BuscarChat(usuario1, usuario2);
-
-        // Obtener la instancia única de ChatManager
-        ChatManager chatManager = ChatManager.getInstance();
-
-        if (chat == null || chat.getId() == 0) {
-            chat.setUsuario1(usuario1);
-            chat.setUsuario2(usuario2);
-            chat = servC.CrearChat(chat);
-        }
-
-        chatManager.setChat(chat);
-
-        for (Chat chat1 : chatsSinVer) {
-            if (chat1.getId() == chat.getId()) {
-                chatsSinVer.remove(chat);
-                notificacionChats = notificacionChats - 1;
-                break;
-            }
-        }
-
-        
-        this.redireccionar("/Chat.xhtml");
-
-    }
-    
-    public void IrChat(int idUsuario2){
-        ServicioUsuario servU = new ServicioUsuario();
-        UsuarioTO user2 = new UsuarioTO();
-        
-        user2 = servU.usuarioPK(idUsuario2);
-        
-        usuario1 = loginController.getUsuarioTO();
-        chat = servC.BuscarChat(usuario1, user2);
-
-        // Obtener la instancia única de ChatManager
-        ChatManager chatManager = ChatManager.getInstance();
-
-        if (chat == null || chat.getId() == 0) {
-            chat.setUsuario1(usuario1);
-            chat.setUsuario2(user2);
-            chat = servC.CrearChat(chat);
-        }
-
-        chatManager.setChat(chat);
-
-        for (Chat chat1 : chatsSinVer) {
-            if (chat1.getId() == chat.getId()) {
-                chatsSinVer.remove(chat);
-                notificacionChats = notificacionChats - 1;
-                break;
-            }
-        }
 
        
-        this.redireccionar("/Chat.xhtml");
+            chat = servC.BuscarChat(usuario1, usuario2);
+
+            // Obtener la instancia única de ChatManager
+            ChatManager chatManager = ChatManager.getInstance();
+
+            if (chat == null || chat.getId() == 0) {
+                chat.setUsuario1(usuario1);
+                chat.setUsuario2(usuario2);
+                chat = servC.CrearChat(chat);
+            }
+
+            chatManager.setChat(chat);
+
+            for (Chat chat1 : chatsSinVer) {
+                if (chat1.getId() == chat.getId()) {
+                    chatsSinVer.remove(chat);
+                    notificacionChats = notificacionChats - 1;
+                    break;
+                }
+            }
+
+            this.redireccionar("/Chat.xhtml");
         
+
+    }
+
+    public void IrChat(int idUsuario2) {
+        ServicioUsuario servU = new ServicioUsuario();
+        UsuarioTO user2 = new UsuarioTO();
+
+        user2 = servU.usuarioPK(idUsuario2);
+
+        usuario1 = loginController.getUsuarioTO();
+
+        
+
+            chat = servC.BuscarChat(usuario1, user2);
+
+            // Obtener la instancia única de ChatManager
+            ChatManager chatManager = ChatManager.getInstance();
+
+            if (chat == null || chat.getId() == 0) {
+                chat.setUsuario1(usuario1);
+                chat.setUsuario2(user2);
+                chat = servC.CrearChat(chat);
+            }
+
+            chatManager.setChat(chat);
+
+            for (Chat chat1 : chatsSinVer) {
+                if (chat1.getId() == chat.getId()) {
+                    chatsSinVer.remove(chat);
+                    notificacionChats = notificacionChats - 1;
+                    break;
+                }
+            }
+
+            this.redireccionar("/Chat.xhtml");
+        
+
     }
 
     @PostConstruct
@@ -121,7 +128,7 @@ public class ChatController {
     public void Chats() {
         UsuarioTO user = new UsuarioTO();
         user = loginController.getUsuarioTO();
-        if(user.getId() != usuario1.getId()){
+        if (user.getId() != usuario1.getId()) {
             usuario1 = user;
             notificacionChats = 0;
         }
@@ -139,16 +146,16 @@ public class ChatController {
                     if ("Visto".equals(conversacion.getEstado())) {
                         Boolean flag = false;
                         for (Chat chat1 : chatsSinVer) {
-                                if (chat1.getId() == chat.getId()) {
-                                    flag = true;
-                                    break;
-                                }
+                            if (chat1.getId() == chat.getId()) {
+                                flag = true;
+                                break;
                             }
+                        }
                         if (flag) {
-                                    chatsSinVer.remove(chat);
-                                    notificacionChats = notificacionChats - 1;
-                                    break;
-                                }
+                            chatsSinVer.remove(chat);
+                            notificacionChats = notificacionChats - 1;
+                            break;
+                        }
                         break;
                     } else if ("No visto".equals(conversacion.getEstado())) {
 
@@ -167,11 +174,11 @@ public class ChatController {
                                 }
                             }
                             if (!flag) {
-                                    chatsSinVer.add(chat);
-                                    notificacionChats = notificacionChats + 1;
-                                    break;
-                                }
-                            
+                                chatsSinVer.add(chat);
+                                notificacionChats = notificacionChats + 1;
+                                break;
+                            }
+
                         }
                         break;
                     }

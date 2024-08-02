@@ -11,7 +11,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 import org.primefaces.event.SelectEvent;
@@ -24,11 +26,17 @@ import org.primefaces.event.SelectEvent;
 @SessionScoped
 public class BusquedaController implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private String query;
     private ServicioUsuario servU;
     private UsuarioTO usuarioSeleccionado;
     private List<UsuarioTO> resultados;
+    private List<UsuarioTO> resultadoschats;
     private Rol rol;
+    private Boolean mostrarResultados;
+    private Boolean mostrarResultadoschats;
+    @ManagedProperty(value = "#{loginController}")
+    private LoginController loginController;
 
     public BusquedaController() {
         servU = new ServicioUsuario();
@@ -48,14 +56,63 @@ public class BusquedaController implements Serializable {
 
     public List<UsuarioTO> obtenerResultados(String query) {
         resultados = servU.buscarUsuarios(query);
-        
+
         return resultados;
     }
     
+    public List<UsuarioTO> obtenerResultadoschats(String query) {
+        resultadoschats = servU.buscarUsuarios(query);
+        for (UsuarioTO user : resultadoschats){
+            if(user.getId() == loginController.getUsuarioTO().getId()){
+                resultadoschats.remove(user);
+                break;
+            }
+        }
+        return resultadoschats;
+    }
+
     public void redirigirUsuario() {
-        rol = servU.rolPK(usuarioSeleccionado.getRol());
-        this.redireccionar("/VerUsuario.xhtml");
-       
+
+        if (loginController.getUsuarioTO().getId() == usuarioSeleccionado.getId()) {
+            this.redireccionar("/verperfil.xhtml");
+        } else {
+            rol = servU.rolPK(usuarioSeleccionado.getRol());
+            this.redireccionar("/VerUsuario.xhtml");
+        }
+
+    }
+
+    public void usuarioElegido(UsuarioTO user) {
+        usuarioSeleccionado = user;
+        if (loginController.getUsuarioTO().getId() == usuarioSeleccionado.getId()) {
+            this.redireccionar("/verperfil.xhtml");
+        } else {
+            rol = servU.rolPK(usuarioSeleccionado.getRol());
+            this.redireccionar("/VerUsuario.xhtml");
+        }
+
+    }
+    
+    public void redirigirUsuariochat() {
+
+        if (loginController.getUsuarioTO().getId() == usuarioSeleccionado.getId()) {
+            
+        } else {
+            rol = servU.rolPK(usuarioSeleccionado.getRol());
+            this.redireccionar("/VerUsuario.xhtml");
+        }
+
+    }
+
+    public void usuarioElegidochat(UsuarioTO user) {
+        usuarioSeleccionado = user;
+        if (loginController.getUsuarioTO().getId() == usuarioSeleccionado.getId()) {
+            
+        } else {
+            rol = servU.rolPK(usuarioSeleccionado.getRol());
+            this.redireccionar("/VerUsuario.xhtml");
+        }
+
     }
 
     public UsuarioTO obtenerUsuarioPorId(int id) {
@@ -66,7 +123,7 @@ public class BusquedaController implements Serializable {
         }
         return null;
     }
-    
+
     public UsuarioTO getUsuarioSeleccionado() {
         return usuarioSeleccionado;
     }
@@ -100,6 +157,46 @@ public class BusquedaController implements Serializable {
     public void setRol(Rol rol) {
         this.rol = rol;
     }
+
+    public Boolean getMostrarResultados() {
+        return mostrarResultados;
+    }
+
+     public void mostrarResultadosPanel() {
+        this.mostrarResultados = true;
+    }
     
+    public void setMostrarResultados(Boolean mostrarResultados) {
+        this.mostrarResultados = mostrarResultados;
+    }
+
+    public LoginController getLoginController() {
+        return loginController;
+    }
+
+    public void setLoginController(LoginController loginController) {
+        this.loginController = loginController;
+    }
+
+    public List<UsuarioTO> getResultadoschats() {
+        return resultadoschats;
+    }
+
+    public void setResultadoschats(List<UsuarioTO> resultadoschats) {
+        this.resultadoschats = resultadoschats;
+    }
+
+    public Boolean getMostrarResultadoschats() {
+        return mostrarResultadoschats;
+    }
+
+    public void setMostrarResultadoschats(Boolean mostrarResultadoschats) {
+        this.mostrarResultadoschats = mostrarResultadoschats;
+    }
     
+    public void mostrarResultadosPanelchat() {
+        this.mostrarResultadoschats = true;
+    }
+    
+
 }

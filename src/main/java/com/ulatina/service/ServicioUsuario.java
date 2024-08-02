@@ -211,8 +211,10 @@ public class ServicioUsuario extends Servicio implements CRUD<UsuarioTO> {
                 int rol = rs.getInt("rol_id");
                 String pass = rs.getString("contrasena");
                 String bio = rs.getString("biografia");
+                String foto = rs.getString("foto_perfil");
 
                 UsuarioTO usuarioTO = new UsuarioTO(id, mail, pass, nom, rol,bio);
+                usuarioTO.setFotoPerfil(foto);
                 usuarios.add(usuarioTO);
             }
         } catch (Exception e) {

@@ -36,6 +36,7 @@ import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.ResponsiveOption;
 import org.primefaces.model.file.UploadedFile;
@@ -45,9 +46,10 @@ import org.primefaces.model.file.UploadedFile;
  * @author josem
  */
 @ManagedBean(name = "publicacionController")
-@ViewScoped
+@SessionScoped
 public class PublicacionController implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private ServicioFavorito servicioFavorito;
     private Publicacion publicacion;
     private String descripcion;
@@ -283,6 +285,18 @@ public class PublicacionController implements Serializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    public void cerrarSesion() throws IOException {
+        FacesContext facesContext = FacesContext.getCurrentInstance();
+        if (facesContext != null) {
+            HttpSession session = (HttpSession) facesContext.getExternalContext().getSession(false);
+            if (session != null) {
+                session.invalidate(); // Invalidar la sesión
+            }
+        }
+        // Redirigir a la página de inicio de sesión u otra página después de cerrar sesión
+        FacesContext.getCurrentInstance().getExternalContext().redirect("IniciarSesion.xhtml");
     }
 
     public void redireccionar(String ruta) {

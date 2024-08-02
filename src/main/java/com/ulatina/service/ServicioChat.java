@@ -264,6 +264,36 @@ public class ServicioChat extends Servicio {
         return conversacion;
     }
 
+    public void EliminarConversacion(int id) {
+        PreparedStatement stmt = null;
+
+        try {
+            // Conectar a la base de datos
+            Conectar();
+
+            // SQL para eliminar un registro
+            String sql = "DELETE FROM conversacion WHERE id = ?";
+            stmt = getConexion().prepareStatement(sql);
+            stmt.setInt(1, id);
+
+            // Ejecutar la eliminación
+            int rowsAffected = stmt.executeUpdate();
+
+            // Verificar si se eliminó alguna fila
+            if (rowsAffected > 0) {
+                System.out.println("Mensaje con ID " + id + " eliminado exitosamente.");
+            } else {
+                System.out.println("No se encontró un mensaje con ID " + id + " para eliminar.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Cerrar recursos
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+    }
+
     public Conversacion actualizarConversacion(Conversacion conversacion) {
         PreparedStatement stmt = null;
 
