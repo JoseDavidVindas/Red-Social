@@ -273,12 +273,77 @@
                 background-color: red;
                 margin-left: auto;
             }
+            
+            /* Estilos para el contenedor del autoComplete y el botón */
+            .search-container {
+                display: flex; /* Utiliza Flexbox para alinear elementos en una fila */
+                align-items: center; /* Alinea los elementos verticalmente en el centro */
+                gap: 10px; /* Espacio entre el autoComplete y el botón */
+            }
+            
+            .auto-complete-item {
+                display: flex;
+                align-items: center;
+            }
+            
+            .auto-complete-item img {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-right: 10px;
+            }
+            
+            /* Estilo para el botón de búsqueda */
+            .search-button {
+                /* Puedes ajustar el estilo del botón aquí según sea necesario */
+            }
+
+            .resultado-item {
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .resultado-item:hover {
+                background-color: #f0f0f0;
+            }
+            
+            .resultado-panel {
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                max-height: 70px; /* Ajusta la altura máxima según tus necesidades */
+                overflow-y: auto; /* Muestra una barra de desplazamiento vertical si el contenido excede la altura */
+                display: flex; /* Asegura que el contenido se alinee correctamente */
+                align-items: center; /* Centra verticalmente el contenido */
+            }
+
+            /* Opcional: Ajusta la apariencia de la barra de desplazamiento */
+            .resultado-panel::-webkit-scrollbar {
+                width: 8px;
+            }
+            .resultado-panel::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+            }
+
+            .resultado-panel::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
         </style>
     </h:head>
 
     <h:body>
         <div class="card">
             <h:form id="mainForm">
+                
+                <p:growl id="messages"/>
 
                 <p:menubar styleClass="custom-menubar">
 
@@ -288,7 +353,11 @@
                     <p:menuitem value="Mi Perfil" icon="pi pi-fw pi-user" outcome="verperfil.xhtml">
                     </p:menuitem>
 
-                    <p:menuitem value="Foro" icon="pi pi-fw pi-users">
+                    <!-- Botón "Perfiles" que mostrará el diálogo -->
+                    <p:menuitem value="Perfiles" icon="pi pi-fw pi-users"  oncomplete="PF('perfilDialog').show();" />
+
+                    
+                    <p:menuitem value="Foro" icon="pi pi-fw pi-comments">
                     </p:menuitem>
 
                     <p:menuitem id="chatMenuitem" icon="pi pi-fw pi-comment" >
@@ -301,19 +370,7 @@
                     <p:menuitem value="Cerrar Sesion" icon="pi pi-sign-out" outcome="IniciarSesion.xhtml">
                     </p:menuitem>
 
-                    <p:menuitem>
-                        <p:autoComplete id="buscador" 
-                                        value="#{busquedaController.usuarioSeleccionado}" 
-                                        completeMethod="#{busquedaController.obtenerResultados}" 
-                                        var="usuario" 
-                                        itemLabel="#{usuario.nombre}" 
-                                        itemValue="#{usuario}" 
-                                        forceSelection="true"
-                                        converter="usuarioConverter"
-                                        placeholder="Buscar...">
-                            <p:ajax event="itemSelect" listener="#{busquedaController.redirigirUsuario}" update=":mainForm" />
-                        </p:autoComplete>
-                    </p:menuitem>
+                 
 
                 </p:menubar>
                 
@@ -323,7 +380,9 @@
                         <ui:repeat value="#{chatController.chats}" var="chat">
                             <div class="chat-item" onclick="PF('chatOverlay').hide();">
                                 <div class="chat-avatar">
-                                    <h:outputText value="#{chat.usuario2.nombre.substring(0, 1)}" />
+                                    <h:graphicImage value="#{empty chat.usuario2.fotoPerfil ? 'http://localhost:8080/Red_Social_Academica/archivos/imagenes/anonimo.jpg' : chat.usuario2.fotoPerfil}" 
+                                                    alt="Foto de #{chat.usuario2.nombre}" 
+                                                    style="width: 40px; height: 40px; border-radius: 50%;"/>
                                 </div>
                                 <div class="chat-name">
                                     <p:commandLink value="#{chat.usuario2.nombre}" actionListener="#{chatController.IrChat(chat.usuario2.id)}" update=":mainForm">
@@ -335,9 +394,11 @@
                                 </h:panelGroup>
                             </div>
                         </ui:repeat>
-                        <h:panelGroup rendered="#{empty chatController.chats}">
+                        <h:panelGroup rendered="#{empty chatController.chats}" style="margin-bottom: 10px">
                             <h:outputText value="No tienes chats" />
                         </h:panelGroup>
+                        <p:commandButton value="Crear Chat" icon="pi pi-plus" onclick="PF('crearChatDialog').show();" style="background-color: white !important; color: black !important; border: 1px solid #ced4da !important;" onmouseover="this.style.backgroundColor = '#f0f0f0'; this.style.borderColor = '#b0b0b0'; this.style.color = '#333';" 
+                                         onmouseout="this.style.backgroundColor = 'white'; this.style.borderColor = '#ced4da'; this.style.color = 'black';"/>
                     </div>
                 </p:overlayPanel>
 
@@ -347,6 +408,99 @@
                 </h:panelGroup>
 
                 <p:poll interval="10" update="chatMenuItem chatOverlay" listener="#{chatController.Chats}" />
+                
+                <!-- Diálogo para buscar usuarios -->
+                <p:dialog id="perfilDialog" widgetVar="perfilDialog" header="Buscar Usuarios" resizable="false" draggable="false">
+                    <h:panelGroup styleClass="search-container">
+                        <!-- AutoComplete para la búsqueda -->
+                        <p:autoComplete id="buscador" 
+                                        value="#{busquedaController.usuarioSeleccionado}" 
+                                        completeMethod="#{busquedaController.obtenerResultados}" 
+                                        var="usuario" 
+                                        itemLabel="#{usuario.nombre}" 
+                                        itemValue="#{usuario}" 
+                                        forceSelection="true"
+                                        converter="usuarioConverter"
+                                        placeholder="Buscar Usuario"
+                                        styleClass="custom-autoComplete">
+
+                            <!-- Plantilla para los elementos de la lista de sugerencias -->
+                            <p:column>
+                                <div class="auto-complete-item">
+                                    <img src="#{empty usuario.fotoPerfil ? 'http://localhost:8080/Red_Social_Academica/archivos/imagenes/anonimo.jpg' : usuario.fotoPerfil}" alt="Foto de #{usuario.nombre}" />
+                                    <span>#{usuario.nombre}</span>
+                                </div>
+                            </p:column>
+
+                            <p:ajax event="itemSelect" listener="#{busquedaController.redirigirUsuario}" oncomplete="PF('perfilDialog').hide();" update=":mainForm:messages" />
+                        </p:autoComplete>
+
+                        <!-- Botón "Buscar" -->
+                        <p:commandButton value="Buscar" 
+                                         icon="pi pi-search" 
+                                         actionListener="#{busquedaController.mostrarResultadosPanel}" 
+                                         update=":mainForm:resultadosPanel"
+                                         styleClass="search-button" />
+                    </h:panelGroup>
+                    <!-- Panel para mostrar los resultados de la búsqueda -->
+                    <h:panelGroup id="resultadosPanel" layout="block" style="margin-top: 10px; display: #{busquedaController.mostrarResultados ? 'block' : 'none'};">
+                        <ui:repeat value="#{busquedaController.resultados}" var="resultado">
+                            <p:commandLink action="#{busquedaController.usuarioElegido(resultado)}" update=":mainForm:resultadosPanel" styleClass="resultado-item" style="display: block; text-decoration: none;">
+                                <h:panelGrid columns="2">
+                                    <h:graphicImage value="#{empty resultado.fotoPerfil ? 'http://localhost:8080/Red_Social_Academica/archivos/imagenes/anonimo.jpg' : resultado.fotoPerfil}" alt="Foto de #{resultado.nombre}" style="width: 50px; height: 50px; border-radius: 50%;"/>
+                                    <h:outputText value="#{resultado.nombre}" style="margin-left: 10px;"/>
+                                </h:panelGrid>
+                            </p:commandLink>
+                        </ui:repeat>
+                    </h:panelGroup>
+
+                </p:dialog>
+
+                <!-- Diálogo para crear un nuevo chat -->
+                <p:dialog id="crearChatDialog" widgetVar="crearChatDialog" header="Crear Nuevo Chat" resizable="false" draggable="false">
+                    <h:panelGroup styleClass="search-container">
+                        <!-- AutoComplete para la búsqueda -->
+                        <p:autoComplete id="buscadorchat" 
+                                        value="#{busquedaController.usuarioSeleccionado}" 
+                                        completeMethod="#{busquedaController.obtenerResultadoschats}" 
+                                        var="usuario" 
+                                        itemLabel="#{usuario.nombre}" 
+                                        itemValue="#{usuario}" 
+                                        forceSelection="true"
+                                        converter="usuarioConverter"
+                                        placeholder="Buscar Usuario"
+                                        styleClass="custom-autoComplete">
+
+                            <!-- Plantilla para los elementos de la lista de sugerencias -->
+                            <p:column>
+                                <div class="auto-complete-item">
+                                    <img src="#{empty usuario.fotoPerfil ? 'http://localhost:8080/Red_Social_Academica/archivos/imagenes/anonimo.jpg' : usuario.fotoPerfil}" alt="Foto de #{usuario.nombre}" />
+                                    <span>#{usuario.nombre}</span>
+                                </div>
+                            </p:column>
+
+                            <p:ajax event="itemSelect" listener="#{chatController.IniciarChat}" oncomplete="PF('perfilDialog').hide();" update=":mainForm:messages" />
+                        </p:autoComplete>
+
+                        <!-- Botón "Buscar" -->
+                        <p:commandButton value="Buscar" 
+                                         icon="pi pi-search" 
+                                         actionListener="#{busquedaController.mostrarResultadosPanelchat()}" 
+                                         update=":mainForm:resultadosPanel2"
+                                         styleClass="search-button" />
+                    </h:panelGroup>
+                    <!-- Panel para mostrar los resultados de la búsqueda -->
+                    <h:panelGroup id="resultadosPanel2" layout="block" style="margin-top: 10px; display: #{busquedaController.mostrarResultadoschats ? 'block' : 'none'};">
+                        <ui:repeat value="#{busquedaController.resultadoschats}" var="resultado">
+                            <p:commandLink action="#{chatController.IrChat(resultado.id)}" update=":mainForm:resultadosPanel2" styleClass="resultado-item" style="display: block; text-decoration: none;">
+                                <h:panelGrid columns="2">
+                                    <h:graphicImage value="#{empty resultado.fotoPerfil ? 'http://localhost:8080/Red_Social_Academica/archivos/imagenes/anonimo.jpg' : resultado.fotoPerfil}" alt="Foto de #{resultado.nombre}" style="width: 50px; height: 50px; border-radius: 50%;"/>
+                                    <h:outputText value="#{resultado.nombre}" style="margin-left: 10px;"/>
+                                </h:panelGrid>
+                            </p:commandLink>
+                        </ui:repeat>
+                    </h:panelGroup>
+                </p:dialog>
                 
             </h:form>
         </div>

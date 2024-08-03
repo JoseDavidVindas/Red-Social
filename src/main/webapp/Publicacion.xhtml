@@ -386,16 +386,16 @@
                 <p:poll interval="10" update="chatMenuItem chatOverlay" listener="#{chatController.Chats}" />
 
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                <!-- Botón redondo para abrir el diálogo -->
-                <p:commandButton value="Crear Publicacion" icon="pi pi-plus" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px; background-color: #34495e !important;" actionListener="#{publicacionController.nuevaPublicacion()}" oncomplete="PF('dlg').show();" update="createDialog"/>
-                <p:commandButton value="Lista Favoritos" icon="pi pi-star" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px; background-color: #34495e !important;" actionListener="#{publicacionController.RedireccionarFavorito}"/>
+                    <!-- Botón redondo para abrir el diálogo -->
+                    <p:commandButton value="Crear Publicacion" icon="pi pi-plus" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px; background-color: #34495e !important;" actionListener="#{publicacionController.nuevaPublicacion()}" oncomplete="PF('dlg').show();" update="createDialog"/>
+                    <p:commandButton value="Lista Favoritos" icon="pi pi-star" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px; background-color: #34495e !important;" actionListener="#{publicacionController.RedireccionarFavorito}"/>
 
-                <!-- Diálogo para filtrar publicaciones -->
-                <h:panelGrid columns="2"  style="margin-bottom: 20px; text-align: center;">
-                    <p:selectCheckboxMenu id="categoryFilter" value="#{publicacionController.categoriasSeleccionadas}" label="Filtrar publicaciones" styleClass="customSelectCheckboxMenu" style="margin-top: 30px;">
-                        <f:selectItems value="#{publicacionController.categorias}" var="categoria" itemLabel="#{categoria.categoria}" itemValue="#{categoria.categoria}"/>
-                        <p:ajax event="change" listener="#{publicacionController.onCategoriaChange}" update=":mainForm:messages :mainForm:publicaciones"/>                    </p:selectCheckboxMenu>
-                </h:panelGrid>
+                    <!-- Diálogo para filtrar publicaciones -->
+                    <h:panelGrid columns="2"  style="margin-bottom: 20px; text-align: center;">
+                        <p:selectCheckboxMenu id="categoryFilter" value="#{publicacionController.categoriasSeleccionadas}" label="Filtrar publicaciones" styleClass="customSelectCheckboxMenu" style="margin-top: 30px;">
+                            <f:selectItems value="#{publicacionController.categorias}" var="categoria" itemLabel="#{categoria.categoria}" itemValue="#{categoria.categoria}"/>
+                            <p:ajax event="change" listener="#{publicacionController.onCategoriaChange}" update=":mainForm:messages :mainForm:publicaciones"/>                    </p:selectCheckboxMenu>
+                    </h:panelGrid>
                 </div>
                 <!-- Diálogo para crear publicación -->
                 <p:dialog id="createDialog" header="Crear Publicación" widgetVar="dlg" modal="true" width="600" height="330">
@@ -419,7 +419,7 @@
                     </h:panelGrid>
                 </p:dialog>
 
-                
+
 
 
                 <!-- Diálogo para buscar usuarios -->
@@ -556,7 +556,7 @@
                                 <p:commandButton icon="pi pi-download"
                                                  action="#{publicacionController.descargarDocumentos(publicacion)}"
                                                  ajax="false"
-                                                 />
+                                                 rendered="#{not empty publicacion.documentos or not empty publicacion.imagenes}"                                 />
                             </h:panelGroup>
                         </h:panelGroup>
                     </ui:repeat>

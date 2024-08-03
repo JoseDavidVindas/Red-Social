@@ -288,7 +288,7 @@ public class PublicacionController implements Serializable {
             e.printStackTrace();
         }
     }
-    
+
     public void cerrarSesion() throws IOException {
         FacesContext facesContext = FacesContext.getCurrentInstance();
         if (facesContext != null) {
@@ -368,21 +368,21 @@ public class PublicacionController implements Serializable {
         zos.closeEntry();
         fis.close();
     }
-    
+
     public void onCategoriaChange(AjaxBehaviorEvent event) throws ClassNotFoundException {
         // Este método se llamará cada vez que se seleccione o deseleccione una categoría
         System.out.println("Categorías seleccionadas: " + categoriasSeleccionadas);
         // Aquí puedes agregar cualquier lógica adicional que desees ejecutar
-        
+
         publicaciones.clear();
-        
-        if(categoriasSeleccionadas.size() != 0 || !categoriasSeleccionadas.isEmpty()){
-        for(String categoria : categoriasSeleccionadas){
-            for(Publicacion publi : servPublicacion.findAllByCategorias(categoria)){
-                publicaciones.add(publi);
+
+        if (categoriasSeleccionadas.size() != 0 || !categoriasSeleccionadas.isEmpty()) {
+            for (String categoria : categoriasSeleccionadas) {
+                for (Publicacion publi : servPublicacion.findAllByCategorias(categoria)) {
+                    publicaciones.add(publi);
+                }
             }
-        }
-        }else{
+        } else {
             cargarPublicaciones(0);
         }
     }
@@ -563,5 +563,4 @@ public class PublicacionController implements Serializable {
         this.categoriasSeleccionadas = categoriasSeleccionadas;
     }
 
-    
 }
