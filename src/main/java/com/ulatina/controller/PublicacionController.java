@@ -34,6 +34,7 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.faces.event.AjaxBehaviorEvent;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -73,6 +74,7 @@ public class PublicacionController implements Serializable {
     private UsuarioTO user;
     private List<Categoria> categorias;
     private String categoriaSeleccionada;
+    private List<String> categoriasSeleccionadas;
 
     @ManagedProperty(value = "#{loginController}")
     private LoginController loginController;
@@ -366,6 +368,24 @@ public class PublicacionController implements Serializable {
         zos.closeEntry();
         fis.close();
     }
+    
+    public void onCategoriaChange(AjaxBehaviorEvent event) throws ClassNotFoundException {
+        // Este método se llamará cada vez que se seleccione o deseleccione una categoría
+        System.out.println("Categorías seleccionadas: " + categoriasSeleccionadas);
+        // Aquí puedes agregar cualquier lógica adicional que desees ejecutar
+        
+        publicaciones.clear();
+        
+        if(categoriasSeleccionadas.size() != 0 || !categoriasSeleccionadas.isEmpty()){
+        for(String categoria : categoriasSeleccionadas){
+            for(Publicacion publi : servPublicacion.findAllByCategorias(categoria)){
+                publicaciones.add(publi);
+            }
+        }
+        }else{
+            cargarPublicaciones(0);
+        }
+    }
 
     public void descargarDocumento(String url) {
         // Implementación del método para descargar documento
@@ -503,4 +523,45 @@ public class PublicacionController implements Serializable {
         this.categoriaSeleccionada = categoriaSeleccionada;
     }
 
+    public ServicioFavorito getServicioFavorito() {
+        return servicioFavorito;
+    }
+
+    public void setServicioFavorito(ServicioFavorito servicioFavorito) {
+        this.servicioFavorito = servicioFavorito;
+    }
+
+    public ServicioPublicacion getServPublicacion() {
+        return servPublicacion;
+    }
+
+    public void setServPublicacion(ServicioPublicacion servPublicacion) {
+        this.servPublicacion = servPublicacion;
+    }
+
+    public ServicioCategoria getServCategoria() {
+        return servCategoria;
+    }
+
+    public void setServCategoria(ServicioCategoria servCategoria) {
+        this.servCategoria = servCategoria;
+    }
+
+    public Archivo getArchivo() {
+        return archivo;
+    }
+
+    public void setArchivo(Archivo archivo) {
+        this.archivo = archivo;
+    }
+
+    public List<String> getCategoriasSeleccionadas() {
+        return categoriasSeleccionadas;
+    }
+
+    public void setCategoriasSeleccionadas(List<String> categoriasSeleccionadas) {
+        this.categoriasSeleccionadas = categoriasSeleccionadas;
+    }
+
+    
 }

@@ -134,6 +134,49 @@ public class ServicioPublicacion extends Servicio implements CRUD<Publicacion> {
         }
         return publicaciones;
     }
+    
+    public List<Publicacion> findAllByCategorias(String namecategoria) throws ClassNotFoundException {
+        List<Publicacion> publicaciones = new ArrayList<>();
+        ResultSet rs = null;
+        PreparedStatement stmt = null;
+        ServicioUsuario servUsuario = new ServicioUsuario();
+        ServicioArchivo servA = new ServicioArchivo();
+
+        try {
+            Conectar();
+            // La consulta SQL se actualiza para usar un límite
+            String query = "SELECT id, descripcion, usuario_id, fecha_publicacion, fecha_actualizacion, numero_favoritos, categoria "
+                    + "FROM publicacion "
+                    + "WHERE categoria = ? "
+                    + "ORDER BY fecha_publicacion DESC ";
+
+            stmt = getConexion().prepareStatement(query);
+            stmt.setString(1, namecategoria);
+          
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Publicacion publicacion = new Publicacion();
+                publicacion.setId(rs.getInt("id"));
+                publicacion.setDescripcion(rs.getString("descripcion"));
+                publicacion.setUsuario(servUsuario.usuarioPK(rs.getInt("usuario_id")));
+                publicacion.setFecha_publicacion(rs.getTimestamp("fecha_publicacion"));
+                publicacion.setFecha_actualizacion(rs.getTimestamp("fecha_actualizacion"));
+                publicacion.setNumero_favoritos(rs.getInt("numero_favoritos"));
+                publicacion.setCategoria(rs.getString("categoria"));
+                publicacion.setDocumentos(servA.buscarDocumento(publicacion));
+                publicacion.setImagenes(servA.buscarImagen(publicacion));
+                publicaciones.add(publicacion);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            CerrarResultSet(rs);
+            CerrarStatement(stmt);
+            Desconectar();
+        }
+        return publicaciones;
+    }
 
     public List<Publicacion> findAllPublicaciones(int id) throws ClassNotFoundException {
         List<Publicacion> publicaciones = new ArrayList<>();

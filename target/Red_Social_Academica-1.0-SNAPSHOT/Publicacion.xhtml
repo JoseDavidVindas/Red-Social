@@ -18,18 +18,27 @@
                 min-height: 100vh; /* Añade esta línea */
             }
             .rounded-button {
-                background-color: #a6acaf;
+                background-color: #34495e !important;
                 color: white;
-                border-radius: 50%;
+                border-radius: 20px; /* Bordes redondeados */
                 border: none;
                 cursor: pointer;
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
+                width: auto; /* Ajusta automáticamente según el contenido */
+                height: 40px; /* Altura fija del botón */
+                font-size: 16px; /* Tamaño del texto */
+                padding: 0 20px; /* Espaciado horizontal interno */
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                text-align: center;
+                margin-top: 20px; /* Espacio superior */
+                margin-left: 10px; /* Espacio izquierdo */
             }
+            .rounded-button:hover {
+                background-color: #8c9497; /* Color de fondo al pasar el mouse */
+                transform: scale(1.05); /* Escala el botón ligeramente */
+            }
+
             .feed-container {
                 max-width: 600px;
                 margin: auto;
@@ -288,6 +297,23 @@
                 background: #555;
             }
 
+            .customSelectCheckboxMenu .ui-selectcheckboxmenu-label {
+                color: #999; /* Color del placeholder */
+            }
+
+            .customSelectCheckboxMenu .ui-selectcheckboxmenu-items .ui-selectcheckboxmenu-item:first-child {
+                display: none; /* Ocultar la opción placeholder del menú */
+            }
+
+            .customSelectCheckboxMenu .ui-selectcheckboxmenu-label:empty::before {
+                content: "Filtrar publicaciones";
+                color: #999; /* Color del placeholder */
+            }
+
+            .align-right-container {
+                display: flex;
+                justify-content: flex-end;
+            }
         </style>
     </h:head>
 
@@ -359,10 +385,18 @@
 
                 <p:poll interval="10" update="chatMenuItem chatOverlay" listener="#{chatController.Chats}" />
 
+                <div style="display: flex; justify-content: space-between; align-items: center;">
                 <!-- Botón redondo para abrir el diálogo -->
-                <p:commandButton icon="pi pi-plus" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px;" actionListener="#{publicacionController.nuevaPublicacion()}" oncomplete="PF('dlg').show();" update="createDialog"/>
-                <p:commandButton icon="pi pi-star" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px;" actionListener="#{publicacionController.RedireccionarFavorito}"/>
+                <p:commandButton value="Crear Publicacion" icon="pi pi-plus" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px; background-color: #34495e !important;" actionListener="#{publicacionController.nuevaPublicacion()}" oncomplete="PF('dlg').show();" update="createDialog"/>
+                <p:commandButton value="Lista Favoritos" icon="pi pi-star" styleClass="rounded-button" style="margin-top: 20px; margin-left: 10px; background-color: #34495e !important;" actionListener="#{publicacionController.RedireccionarFavorito}"/>
 
+                <!-- Diálogo para filtrar publicaciones -->
+                <h:panelGrid columns="2"  style="margin-bottom: 20px; text-align: center;">
+                    <p:selectCheckboxMenu id="categoryFilter" value="#{publicacionController.categoriasSeleccionadas}" label="Filtrar publicaciones" styleClass="customSelectCheckboxMenu" style="margin-top: 30px;">
+                        <f:selectItems value="#{publicacionController.categorias}" var="categoria" itemLabel="#{categoria.categoria}" itemValue="#{categoria.categoria}"/>
+                        <p:ajax event="change" listener="#{publicacionController.onCategoriaChange}" update=":mainForm:messages :mainForm:publicaciones"/>                    </p:selectCheckboxMenu>
+                </h:panelGrid>
+                </div>
                 <!-- Diálogo para crear publicación -->
                 <p:dialog id="createDialog" header="Crear Publicación" widgetVar="dlg" modal="true" width="600" height="330">
                     <h:panelGrid columns="1" cellpadding="5" style="width: 100%;">
@@ -384,6 +418,9 @@
                         <p:commandButton value="Publicar" actionListener="#{publicacionController.crearPublicacion}" oncomplete="PF('dlg').hide();" update=":mainForm:messages :mainForm:publicaciones"/>
                     </h:panelGrid>
                 </p:dialog>
+
+                
+
 
                 <!-- Diálogo para buscar usuarios -->
                 <p:dialog id="perfilDialog" widgetVar="perfilDialog" header="Buscar Usuarios" resizable="false" draggable="false">
