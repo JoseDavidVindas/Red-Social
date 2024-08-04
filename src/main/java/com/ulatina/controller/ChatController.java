@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
@@ -195,6 +196,10 @@ public class ChatController implements Serializable {
         } catch (Exception e) {
 
         }
+    }
+    
+    public void MensajeEliminado(){
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage("Mensaje eliminado"));
     }
 
     public UsuarioTO getUsuario1() {

@@ -89,7 +89,7 @@ public class ChatEndpoint {
         // Send message history to the new session
         if (messageHistory != null && !messageHistory.isEmpty()) {
             for (Conversacion conversacion : messageHistory) {
-                String message = conversacion.getUsuario().getNombre() + " (" + conversacion.getFecha() + "): " + conversacion.getMensaje() + " (" + conversacion.getEstado() + ")";
+                String message = conversacion.getId() + "|" + conversacion.getUsuario().getNombre() + "|" + conversacion.getFecha() + "|" + conversacion.getMensaje() + "|" + conversacion.getEstado() + "|" + conversacion.getUsuario().getId();
 
                 for (Session s : sessions) {
                     Chat chat2 = sessionChats.get(s);
@@ -114,63 +114,106 @@ public class ChatEndpoint {
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
         System.out.println("Received message: " + message + " from session: " + session.getId());
+        int idmensaje;
+        ServicioChat servC = new ServicioChat();
         if (message == null || message.trim().isEmpty()) {
             System.out.println("Message is empty");
             return;
         }
 
-        // Obtener el chat asociado a la sesión
-        Chat chat = sessionChats.get(session);
+        // if que decide si es un menssaje para eliminar o enviar
+        if (message.startsWith("DELETE|")) {
+            String messageId = message.split("\\|")[1];
+            System.out.println("" + messageId);
+            idmensaje = Integer.parseInt(messageId);
 
-        // Crear la nueva conversación
-        Conversacion conversacion = new Conversacion();
-        conversacion.setChat(chat);
-        conversacion.setUsuario(chat.getUsuario1());
-        conversacion.setMensaje(message);
-        conversacion.setEstado("No visto");
+            // Obtener el chat asociado a la sesión
+            Chat chat = sessionChats.get(session);
 
-        // Instanciar ServicioChat y agregar el nuevo mensaje
-        ServicioChat servC = new ServicioChat();
-        Conversacion conv = servC.AgregarMensaje(conversacion);
+            servC.EliminarConversacion(idmensaje);
 
-        if (conv.getId() != 0) {
-            // Agregar la conversación al historial
-            if (messageHistory == null) {
-                messageHistory = new ArrayList<>();
+            for (Conversacion conv : messageHistory) {
+                if (conv.getId() == idmensaje) {
+                    messageHistory.remove(conv);
+                    break;
+                }
             }
-            messageHistory.add(conv);
 
-            for (Session s : sessions) {
-                Chat chat2 = sessionChats.get(s);
+            // Send message history to the new session
+            if (messageHistory != null && !messageHistory.isEmpty()) {
+                for (Conversacion conversacion : messageHistory) {
+                    String message1 = conversacion.getId() + "|" + conversacion.getUsuario().getNombre() + "|" + conversacion.getFecha() + "|" + conversacion.getMensaje() + "|" + conversacion.getEstado() + "|" + conversacion.getUsuario().getId();
 
-                if (s.isOpen()) {
-                    if (chat.getId() == chat2.getId()) {
-                        if (chat2.getUsuario1().getId() != chat.getUsuario1().getId()) {
-                            conversacion.setEstado("Visto");
-                            conv = servC.actualizarConversacion(conversacion);
+                    for (Session s : sessions) {
+                        Chat chat2 = sessionChats.get(s);
+                        if (s.isOpen()) {
+                            if (chat.getId() == chat2.getId()) {
+                                try {
+                                    s.getBasicRemote().sendText(message1);
+                                } catch (IOException e) {
+                                    System.out.println("Error sending message: " + e.getMessage());
+                                    // No cerrar la conexión aquí, solo reportar el error
+                                }
+                            }
+
                         }
                     }
                 }
             }
 
-            // Enviar el mensaje a todas las sesiones
-            String formattedMessage = conv.getUsuario().getNombre() + " (" + conv.getFecha() + "): " + conv.getMensaje() + " (" + conversacion.getEstado() + ")";
-            for (Session s : sessions) {
-                Chat chat2 = sessionChats.get(s);
-                if (s.isOpen()) {
-                    if (chat.getId() == chat2.getId()) {
-                        try {
-                            s.getBasicRemote().sendText(formattedMessage);
-                        } catch (IOException e) {
-                            System.out.println("Error sending message: " + e.getMessage());
-                            // No cerrar la conexión aquí, solo reportar el error
-                        }
-                    }
-
-                }
-            }
         } else {
-            System.out.println("No se logró enviar el mensaje");
+
+            // Obtener el chat asociado a la sesión
+            Chat chat = sessionChats.get(session);
+
+            // Crear la nueva conversación
+            Conversacion conversacion = new Conversacion();
+            conversacion.setChat(chat);
+            conversacion.setUsuario(chat.getUsuario1());
+            conversacion.setMensaje(message);
+            conversacion.setEstado("No visto");
+
+            Conversacion conv = servC.AgregarMensaje(conversacion);
+
+            if (conv.getId() != 0) {
+                // Agregar la conversación al historial
+                if (messageHistory == null) {
+                    messageHistory = new ArrayList<>();
+                }
+                messageHistory.add(conv);
+
+                for (Session s : sessions) {
+                    Chat chat2 = sessionChats.get(s);
+
+                    if (s.isOpen()) {
+                        if (chat.getId() == chat2.getId()) {
+                            if (chat2.getUsuario1().getId() != chat.getUsuario1().getId()) {
+                                conversacion.setEstado("Visto");
+                                conv = servC.actualizarConversacion(conversacion);
+                            }
+                        }
+                    }
+                }
+
+                // Enviar el mensaje a todas las sesiones
+                String formattedMessage = conv.getId() + "|" + conv.getUsuario().getNombre() + "|" + conv.getFecha() + "|" + conv.getMensaje() + "|" + conversacion.getEstado() + "|" + conv.getUsuario().getId();
+                for (Session s : sessions) {
+                    Chat chat2 = sessionChats.get(s);
+                    if (s.isOpen()) {
+                        if (chat.getId() == chat2.getId()) {
+                            try {
+                                s.getBasicRemote().sendText(formattedMessage);
+                            } catch (IOException e) {
+                                System.out.println("Error sending message: " + e.getMessage());
+                                // No cerrar la conexión aquí, solo reportar el error
+                            }
+                        }
+
+                    }
+                }
+            } else {
+                System.out.println("No se logró enviar el mensaje");
+            }
         }
     }
 

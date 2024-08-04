@@ -120,8 +120,8 @@
                 color: #333; /* Color del texto en el campo de búsqueda */
                 border: 1px solid #ccc; /* Borde del campo de búsqueda */
             }
-            
-            
+
+
             .ui-autocomplete {
                 z-index: 1000; /* Asegura que la lista desplegable esté encima de otros elementos */
             }
@@ -184,7 +184,7 @@
                 font-size: 14px;
                 color: #333;
             }
-            
+
             .chat-unread {
                 width: 10px;
                 height: 10px;
@@ -192,24 +192,24 @@
                 background-color: red;
                 margin-left: auto;
             }
-            
+
             /* Estilos para el contenedor del autoComplete y el botón */
             .search-container {
                 display: flex; /* Utiliza Flexbox para alinear elementos en una fila */
                 align-items: center; /* Alinea los elementos verticalmente en el centro */
                 gap: 10px; /* Espacio entre el autoComplete y el botón */
             }
-            
+
             /* Estilo para el autoComplete */
             .custom-autoComplete {
                 width: 300px; /* Ancho fijo del autoComplete */
             }
-            
+
             .auto-complete-item {
                 display: flex;
                 align-items: center;
             }
-            
+
             .auto-complete-item img {
                 width: 24px;
                 height: 24px;
@@ -217,7 +217,7 @@
                 object-fit: cover;
                 margin-right: 10px;
             }
-            
+
             /* Estilo para el botón de búsqueda */
             .search-button {
                 /* Puedes ajustar el estilo del botón aquí según sea necesario */
@@ -235,7 +235,7 @@
             .resultado-item:hover {
                 background-color: #f0f0f0;
             }
-            
+
             .resultado-panel {
                 padding: 10px;
                 border: 1px solid #ccc;
@@ -260,12 +260,55 @@
             .resultado-panel::-webkit-scrollbar-thumb:hover {
                 background: #555;
             }
+
+            .context-menu {
+                display: none;
+                position: absolute;
+                background-color: #ff4d4d !important; /* Rojo claro */
+                border: 1px solid #cc0000 !important; /* Borde rojo oscuro */
+                z-index: 1000;
+                box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+                padding: 5px;
+                border-radius: 4px;
+            }
+
+            /* Estilo para los ítems del menú */
+            .context-menu-item {
+                color: #ffffff !important; /* Texto blanco */
+                padding: 2px 6px; /* Aumentado ligeramente para hacer el botón más pequeño */
+                font-size: 10px; /* Tamaño de fuente reducido */
+                cursor: pointer;
+                border-radius: 4px;
+                transition: background-color 0.3s ease, transform 0.3s ease; /* Transiciones suaves */
+                background-color: #ff4d4d !important; /* Rojo claro por defecto */
+                border: 1px solid #cc0000 !important; /* Borde rojo oscuro */
+            }
+
+            .context-menu-item:hover {
+                background-color: #cc0000 !important; /* Rojo oscuro cuando se pasa el ratón */
+                transform: scale(1.06); /* Efecto de aumento al pasar el ratón */
+            }
+
+            .custom-button {
+                background-color: #34495e; /* Color de fondo del botón */
+                color: white; /* Color del texto */
+                border: none; /* Quitar el borde predeterminado */
+                padding: 10px 20px; /* Espaciado interno */
+                font-size: 16px; /* Tamaño de la fuente */
+                cursor: pointer; /* Cambia el cursor cuando pasa sobre el botón */
+                transition: background-color 0.3s ease; /* Transición suave para el cambio de color */
+            }
+
+            .custom-button:hover {
+                background-color: #2c3e50; /* Color más claro cuando se pasa el mouse */
+            }
         </style>
         <script type="text/javascript">
             var ws;
             var reconnectInterval = 5000; // 5 seconds
             var maxReconnectAttempts = 10;
             var reconnectAttempts = 0;
+            let contextMenuMessageId = null;
 
             function connect() {
                 ws = new WebSocket("ws://localhost:8080/Red_Social_Academica/websocket/chat");
@@ -334,9 +377,49 @@
                 }
             }
 
+            function showContextMenu(event, container, messageId, userId) {
+                event.preventDefault();
+
+                const iduserlogin = #{loginController.usuarioTO.id};
+                const contextMenu = document.getElementById('context-menu');
+                console.log("Muestra los id:", {iduserlogin, userId});
+                if (userId === iduserlogin.toString()) {
+                    console.log("Usuario lllllogin:", {iduserlogin, userId});
+                    contextMenu.style.top = `${event.clientY}px`;
+                    contextMenu.style.left = `${event.clientX}px`;
+                    contextMenu.style.display = 'block';
+
+                    contextMenuMessageId = messageId;
+
+                    window.addEventListener('click', function () {
+                        contextMenu.style.display = 'none';
+                    }, {once: true});
+                } else {
+                    console.log("no entro el Usuario lllllogin:", {iduserlogin, userId});
+                    contextMenu.style.display = 'none';
+
+                }
+            }
+
+            function handleDeleteMessage(messageId) {
+                contextMenuMessageId = messageId; // Guardar el ID del mensaje para usarlo después
+                console.log("Entro al handleDeleteMessage:", {messageId});
+                PF('confirmDialog').show(); // Mostrar el diálogo de confirmación
+            }
+
+            function confirmDeleteMessage() {
+                const messageId = contextMenuMessageId;
+                console.log("Entro al handleDeleteMessage:", {messageId});
+                if (messageId) {
+                    // Enviar mensaje de eliminación al servidor WebSocket
+                    ws.send("DELETE|" + messageId);
+                }
+                PF('confirmDialog').hide();
+            }
+
             function formatMessage(message) {
                 // Expresión regular para extraer las partes del mensaje
-                const regex = /^(.+) \((.+?)\): (.+) \((.+)\)$/;
+                const regex = /^(\d+)\|(.+?)\|(.+?)\|(.+?)\|(.+?)\|(\d+)$/;
                 const match = message.match(regex);
 
                 if (!match) {
@@ -344,16 +427,24 @@
                     return '';
                 }
 
-                const userName = match[1];      // Nombre del usuario
-                const date = match[2];          // Fecha
-                const text = match[3];          // Texto del mensaje
-                const status = match[4];        // Estado
+                const messageId = match[1];       // ID del mensaje
+                const userName = match[2];        // Nombre del usuario
+                const date = match[3];            // Fecha
+                const text = match[4];            // Texto del mensaje
+                const status = match[5];          // Estado
+                const userId = match[6];          // ID del usuario
 
-                console.log("Formatted Message Parts:", {userName, date, text, status});
+                console.log("Formatted Message Parts:", {messageId, userName, date, text, status, userId});
 
                 // Crear elementos DOM
                 const container = document.createElement('div');
                 container.className = 'message-container';
+                container.setAttribute('data-message-id', messageId);
+                container.setAttribute('data-user-id', userId); // También agregamos el ID del usuario
+                container.addEventListener('contextmenu', function (event) {
+                    event.preventDefault();
+                    showContextMenu(event, container, messageId, userId);
+                });
 
                 const nameElement = document.createElement('div');
                 nameElement.className = 'user-name';
@@ -383,6 +474,8 @@
                 container.appendChild(dateElement);
                 container.appendChild(statusElement);
 
+
+
                 return container;
             }
 
@@ -396,7 +489,7 @@
             <h:form id="mainForm">
 
                 <p:growl id="messages"/>
-                
+
                 <p:menubar styleClass="custom-menubar">
 
                     <p:menuitem icon="pi pi-home" outcome="Publicacion.xhtml">
@@ -408,7 +501,7 @@
                     <!-- Botón "Perfiles" que mostrará el diálogo -->
                     <p:menuitem value="Perfiles" icon="pi pi-fw pi-users"  oncomplete="PF('perfilDialog').show();" />
 
-                    
+
                     <p:menuitem value="Foro" icon="pi pi-fw pi-comments">
                     </p:menuitem>
 
@@ -422,10 +515,10 @@
                     <p:menuitem value="Cerrar Sesion" icon="pi pi-sign-out" outcome="IniciarSesion.xhtml">
                     </p:menuitem>
 
-                    
+
 
                 </p:menubar>
-                
+
                 <!-- OverlayPanel para mostrar los chats -->
                 <p:overlayPanel id="chatOverlay" for="chatMenuitem" widgetVar="chatOverlay" showEvent="click" hideEvent="click" my="left top" at="left bottom" style="z-index: 1000;">
                     <div class="chat-list">
@@ -437,8 +530,8 @@
                                                     style="width: 40px; height: 40px; border-radius: 50%;"/>
                                 </div>
                                 <div class="chat-name">
-                                    <p:commandLink value="#{chat.usuario2.nombre}" actionListener="#{chatController.IrChat(chat.usuario2.id)}" update=":mainForm">
-                                        
+                                    <p:commandLink value="#{chat.usuario2.nombre}" actionListener="#{chatController.IrChat(chat.usuario2.id)}" style="color:black;" update=":mainForm">
+
                                     </p:commandLink>
                                 </div>
                                 <h:panelGroup rendered="#{chatController.chatsSinVer.contains(chat)}">
@@ -450,7 +543,9 @@
                             <h:outputText value="No tienes chats" />
                         </h:panelGroup>
                         <p:commandButton value="Crear Chat" icon="pi pi-plus" onclick="PF('crearChatDialog').show();" style="background-color: white !important; color: black !important; border: 1px solid #ced4da !important;" onmouseover="this.style.backgroundColor = '#f0f0f0'; this.style.borderColor = '#b0b0b0'; this.style.color = '#333';" 
-                                         onmouseout="this.style.backgroundColor = 'white'; this.style.borderColor = '#ced4da'; this.style.color = 'black';"/>
+                                         onmouseout="this.style.backgroundColor = 'white';
+                                                 this.style.borderColor = '#ced4da';
+                                                 this.style.color = 'black';"/>
                     </div>
                 </p:overlayPanel>
 
@@ -460,7 +555,7 @@
                 </h:panelGroup>
 
                 <p:poll interval="10" update="chatMenuItem chatOverlay" listener="#{chatController.Chats}" />
-                
+
                 <!-- Diálogo para buscar usuarios -->
                 <p:dialog id="perfilDialog" widgetVar="perfilDialog" header="Buscar Usuarios" resizable="false" draggable="false">
                     <h:panelGroup styleClass="search-container">
@@ -553,7 +648,7 @@
                         </ui:repeat>
                     </h:panelGroup>
                 </p:dialog>
-                
+
             </h:form>
         </div>
         <h:form id="chatForm">
@@ -564,8 +659,23 @@
                     </ul>
                 </p:outputPanel>
                 <input type="text" id="message" placeholder="Escribe el mensaje" />
-                <button type="button" onclick="sendMessage()">Enviar</button>
+                <button type="button" onclick="sendMessage()" class="custom-button">Enviar</button>
             </p:panel>
+
+            <!-- Menú contextual -->
+            <div id="context-menu" class="context-menu">
+                <p:commandButton id="delete-button" value="Eliminar Mensaje" class="context-menu-item" style="background-color: #ff4d4d !important; border: 1px solid #ff4d4d !important;" onclick="handleDeleteMessage(contextMenuMessageId)"/>
+            </div>
+
+            <!-- Diálogo de Confirmación -->
+            <p:dialog id="confirmDialog" widgetVar="confirmDialog" header="Confirmación" modal="true" showEffect="fade" hideEffect="fade">
+                <h:panelGroup>
+                    <p:outputLabel value="¿Estás seguro de eliminar el mensaje?" />
+                    <br /><br />
+                    <p:commandButton value="Sí" onclick="confirmDeleteMessage()" action="#{chatController.MensajeEliminado}" style=" background-color: #34495e !important; margin-right: 10px;" update=":mainForm:messages"  />
+                    <p:commandButton value="No" onclick="PF('confirmDialog').hide()" type="button" style=" background-color: #34495e !important; margin-right: 10px;" />
+                </h:panelGroup>
+            </p:dialog>
         </h:form>
     </h:body>
 </html>
